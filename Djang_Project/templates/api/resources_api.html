@@ -1,0 +1,412 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Resources & Knowledge Base API Documentation | {{ block.super }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .api-section {
+        margin-bottom: 2rem;
+        padding: 1.5rem;
+        border-radius: 0.5rem;
+        background: #fff;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .endpoint {
+        border-left: 4px solid #3498db;
+        padding: 1rem;
+        margin: 1rem 0;
+        background: #f8f9fa;
+    }
+    .method {
+        display: inline-block;
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.25rem;
+        font-weight: bold;
+        margin-right: 0.5rem;
+    }
+    .get { background: #28a745; color: white; }
+    .post { background: #007bff; color: white; }
+    .put { background: #ffc107; color: black; }
+    .delete { background: #dc3545; color: white; }
+    .patch { background: #6c757d; color: white; }
+    .endpoint-url {
+        font-family: monospace;
+        padding: 0.25rem;
+        background: #e9ecef;
+        border-radius: 0.25rem;
+        cursor: pointer;
+    }
+    .resource-note {
+        background: #e8f4f8;
+        border: 1px solid #bee5eb;
+        padding: 1rem;
+        border-radius: 0.25rem;
+        margin-bottom: 1.5rem;
+    }
+    .response-example {
+        background: #272822;
+        color: #f8f8f2;
+        padding: 1rem;
+        border-radius: 0.25rem;
+        margin-top: 1rem;
+        font-family: monospace;
+    }
+    .resource-type {
+        display: inline-block;
+        padding: 0.2rem 0.5rem;
+        border-radius: 0.25rem;
+        font-size: 0.8rem;
+        margin-right: 0.5rem;
+    }
+    .article { background: #007bff; color: white; }
+    .guide { background: #28a745; color: white; }
+    .template { background: #ffc107; color: black; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h1 class="mb-4">Resources & Knowledge Base API Documentation</h1>
+
+    <div class="resource-note">
+        <h5><i class="fas fa-book"></i> Resource Types</h5>
+        <p class="mb-0">
+            Available types:
+            <span class="resource-type article">Article</span>
+            <span class="resource-type guide">Guide</span>
+            <span class="resource-type template">Modèle</span>
+        </p>
+    </div>
+
+    <!-- Articles Management -->
+    <div class="api-section">
+        <h2>Articles Management</h2>
+
+        <!-- Create Article -->
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <span class="endpoint-url">/api/resources/articles/</span>
+            <p>Create a new article</p>
+
+            <h6>Request Body:</h6>
+            <div class="response-example">
+                <pre>{
+    "title": "Guide de Démarrage",
+    "content": "# Introduction\nBienvenue dans le guide...",
+    "category": "getting_started",
+    "tags": ["startup", "guide"],
+    "author_id": "user-123",
+    "status": "draft",
+    "locale": "fr",
+    "metadata": {
+        "reading_time": 5,
+        "difficulty": "beginner"
+    },
+    "attachments": [
+        {
+            "file_id": "file-789",
+            "type": "image"
+        }
+    ]
+}</pre>
+            </div>
+
+            <h6>Response:</h6>
+            <div class="response-example">
+                <pre>{
+    "id": "article-123",
+    "title": "Guide de Démarrage",
+    "slug": "guide-de-demarrage",
+    "author": {
+        "id": "user-123",
+        "name": "Alice Smith"
+    },
+    "created_at": "2024-01-19T14:00:00Z",
+    "status": "draft",
+    "url": "/resources/guide-de-demarrage"
+}</pre>
+            </div>
+        </div>
+
+        <!-- List Articles -->
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <span class="endpoint-url">/api/resources/articles/</span>
+            <p>List articles</p>
+
+            <h6>Query Parameters:</h6>
+            <table class="table params-table">
+                <thead>
+                    <tr>
+                        <th>Parameter</th>
+                        <th>Type</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>category</td>
+                        <td>string</td>
+                        <td>Filter by category</td>
+                    </tr>
+                    <tr>
+                        <td>status</td>
+                        <td>string</td>
+                        <td>Filter by status</td>
+                    </tr>
+                    <tr>
+                        <td>locale</td>
+                        <td>string</td>
+                        <td>Filter by language</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Categories Management -->
+    <div class="api-section">
+        <h2>Categories Management</h2>
+
+        <!-- Create Category -->
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <span class="endpoint-url">/api/resources/categories/</span>
+            <p>Create a resource category</p>
+
+            <h6>Request Body:</h6>
+            <div class="response-example">
+                <pre>{
+    "name": "Guides Techniques",
+    "description": "Documentation technique pour les développeurs",
+    "parent_id": "category-456",
+    "icon": "code",
+    "order": 1
+}</pre>
+            </div>
+        </div>
+
+        <!-- List Categories -->
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <span class="endpoint-url">/api/resources/categories/</span>
+            <p>List resource categories</p>
+        </div>
+    </div>
+
+    <!-- Templates Management -->
+    <div class="api-section">
+        <h2>Templates Management</h2>
+
+        <!-- Create Template -->
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <span class="endpoint-url">/api/resources/templates/</span>
+            <p>Create a document template</p>
+
+            <h6>Request Body:</h6>
+            <div class="response-example">
+                <pre>{
+    "name": "Plan d'Affaires",
+    "description": "Modèle de plan d'affaires",
+    "content": {
+        "sections": [
+            {
+                "title": "Résumé Exécutif",
+                "content": "# Résumé Exécutif\n..."
+            },
+            {
+                "title": "Analyse de Marché",
+                "content": "# Analyse de Marché\n..."
+            }
+        ]
+    },
+    "variables": [
+        {
+            "name": "company_name",
+            "type": "string",
+            "required": true
+        },
+        {
+            "name": "industry",
+            "type": "select",
+            "options": ["Tech", "Agriculture"]
+        }
+    ]
+}</pre>
+            </div>
+        </div>
+
+        <!-- Generate Document -->
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <span class="endpoint-url">/api/resources/templates/{template_id}/generate/</span>
+            <p>Generate document from template</p>
+
+            <h6>Request Body:</h6>
+            <div class="response-example">
+                <pre>{
+    "variables": {
+        "company_name": "TechStart Burundi",
+        "industry": "Tech"
+    },
+    "format": "pdf"
+}</pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- Resource Versions -->
+    <div class="api-section">
+        <h2>Resource Versions</h2>
+
+        <!-- Create Version -->
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <span class="endpoint-url">/api/resources/{resource_id}/versions/</span>
+            <p>Create a new version</p>
+
+            <h6>Request Body:</h6>
+            <div class="response-example">
+                <pre>{
+    "version": "1.1",
+    "changes": [
+        "Mise à jour des captures d'écran",
+        "Correction des erreurs de frappe"
+    ],
+    "content": "# Version 1.1\n..."
+}</pre>
+            </div>
+        </div>
+
+        <!-- List Versions -->
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <span class="endpoint-url">/api/resources/{resource_id}/versions/</span>
+            <p>List resource versions</p>
+        </div>
+    </div>
+
+    <!-- Resource Analytics -->
+    <div class="api-section">
+        <h2>Resource Analytics</h2>
+
+        <!-- Get Analytics -->
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <span class="endpoint-url">/api/resources/analytics/</span>
+            <p>Get resource usage analytics</p>
+
+            <h6>Response:</h6>
+            <div class="response-example">
+                <pre>{
+    "overview": {
+        "total_resources": 250,
+        "total_views": 15000,
+        "unique_users": 1200
+    },
+    "popular_resources": [
+        {
+            "id": "article-123",
+            "title": "Guide de Démarrage",
+            "views": 2500,
+            "downloads": 150
+        }
+    ],
+    "engagement": {
+        "average_time_spent": 300,  // seconds
+        "completion_rate": 85  // percentage
+    },
+    "feedback": {
+        "average_rating": 4.5,
+        "total_ratings": 500,
+        "helpful_votes": 450
+    }
+}</pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- Resource Search -->
+    <div class="api-section">
+        <h2>Resource Search</h2>
+
+        <!-- Search Resources -->
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <span class="endpoint-url">/api/resources/search/</span>
+            <p>Search resources</p>
+
+            <h6>Query Parameters:</h6>
+            <table class="table params-table">
+                <thead>
+                    <tr>
+                        <th>Parameter</th>
+                        <th>Type</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>q</td>
+                        <td>string</td>
+                        <td>Search query</td>
+                    </tr>
+                    <tr>
+                        <td>type</td>
+                        <td>string</td>
+                        <td>Resource type</td>
+                    </tr>
+                    <tr>
+                        <td>category</td>
+                        <td>string</td>
+                        <td>Category filter</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h6>Response:</h6>
+            <div class="response-example">
+                <pre>{
+    "results": [
+        {
+            "id": "article-123",
+            "type": "article",
+            "title": "Guide de Démarrage",
+            "excerpt": "Un guide complet pour...",
+            "category": "getting_started",
+            "relevance_score": 0.95,
+            "highlight": {
+                "title": "Guide de <em>Démarrage</em>",
+                "content": "...guide complet pour le <em>démarrage</em>..."
+            }
+        }
+    ],
+    "total": 25,
+    "page": 1,
+    "per_page": 10
+}</pre>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Add copy functionality for endpoint URLs
+    document.querySelectorAll('.endpoint-url').forEach(element => {
+        element.addEventListener('click', function() {
+            const text = this.textContent;
+            navigator.clipboard.writeText(text).then(() => {
+                const originalText = this.textContent;
+                this.textContent = 'Copied!';
+                setTimeout(() => {
+                    this.textContent = originalText;
+                }, 1000);
+            });
+        });
+    });
+</script>
+{% endblock %}

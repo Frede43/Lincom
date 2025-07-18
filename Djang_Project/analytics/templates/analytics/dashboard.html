@@ -1,0 +1,174 @@
+{% extends 'base.html' %}
+
+{% block title %}Tableau de bord analytique - Community Lab{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <h1>Tableau de bord analytique</h1>
+        </div>
+    </div>
+
+    <!-- Statistiques générales -->
+    <div class="row mb-4">
+        <div class="col-md-2">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <h6 class="card-title">Utilisateurs totaux</h6>
+                    <h2 class="mb-0">{{ platform_stats.total_users }}</h2>
+                    <small>dont {{ platform_stats.active_users }} actifs</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <h6 class="card-title">Startups</h6>
+                    <h2 class="mb-0">{{ platform_stats.total_startups }}</h2>
+                    <small>enregistrées</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <h6 class="card-title">Projets</h6>
+                    <h2 class="mb-0">{{ platform_stats.total_projects }}</h2>
+                    <small>en cours</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <h6 class="card-title">Cours</h6>
+                    <h2 class="mb-0">{{ platform_stats.total_courses }}</h2>
+                    <small>disponibles</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card bg-danger text-white">
+                <div class="card-body">
+                    <h6 class="card-title">Formations</h6>
+                    <h2 class="mb-0">{{ platform_stats.total_trainings }}</h2>
+                    <small>organisées</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Graphique d'activité -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Activité des utilisateurs (30 derniers jours)</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="activityChart" height="100"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation des analytiques -->
+    <div class="row">
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Analytiques des cours</h5>
+                    <p class="card-text">Visualisez les statistiques détaillées des cours, le taux de complétion et la progression des étudiants.</p>
+                    <a href="{% url 'analytics:course_analytics' %}" class="btn btn-primary">
+                        <i class="fas fa-graduation-cap"></i> Voir les détails
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Analytiques des formations</h5>
+                    <p class="card-text">Suivez les statistiques des formations, le taux de participation et la satisfaction des participants.</p>
+                    <a href="{% url 'analytics:training_analytics' %}" class="btn btn-primary">
+                        <i class="fas fa-chalkboard-teacher"></i> Voir les détails
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Performance des startups</h5>
+                    <p class="card-text">Analysez la performance des startups, leurs projets et leur progression.</p>
+                    <a href="{% url 'analytics:startup_analytics' %}" class="btn btn-primary">
+                        <i class="fas fa-rocket"></i> Voir les détails
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Analytiques des appels à projets</h5>
+                    <p class="card-text">Suivez les statistiques des appels à projets et des soumissions.</p>
+                    <a href="{% url 'analytics:project_call_analytics' %}" class="btn btn-primary">
+                        <i class="fas fa-project-diagram"></i> Voir les détails
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Analytiques des compétitions</h5>
+                    <p class="card-text">Analysez les statistiques des compétitions et la participation.</p>
+                    <a href="{% url 'analytics:competition_analytics' %}" class="btn btn-primary">
+                        <i class="fas fa-trophy"></i> Voir les détails
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var ctx = document.getElementById('activityChart').getContext('2d');
+    var myChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: {{ activity_dates|safe }},
+            datasets: [{
+                label: 'Activités par jour',
+                data: {{ activity_counts|safe }},
+                backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1,
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        precision: 0
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    position: 'top',
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

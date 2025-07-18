@@ -1,0 +1,313 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Authentication API Documentation | {{ block.super }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .api-section {
+        margin-bottom: 2rem;
+        padding: 1.5rem;
+        border-radius: 0.5rem;
+        background: #fff;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .endpoint {
+        border-left: 4px solid #3498db;
+        padding: 1rem;
+        margin: 1rem 0;
+        background: #f8f9fa;
+    }
+    .method {
+        display: inline-block;
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.25rem;
+        font-weight: bold;
+        margin-right: 0.5rem;
+    }
+    .get { background: #28a745; color: white; }
+    .post { background: #007bff; color: white; }
+    .put { background: #ffc107; color: black; }
+    .delete { background: #dc3545; color: white; }
+    .endpoint-url {
+        font-family: monospace;
+        padding: 0.25rem;
+        background: #e9ecef;
+        border-radius: 0.25rem;
+        cursor: pointer;
+    }
+    .security-note {
+        background: #fff3cd;
+        border: 1px solid #ffeeba;
+        padding: 1rem;
+        border-radius: 0.25rem;
+        margin-bottom: 1.5rem;
+    }
+    .required-badge {
+        background: #dc3545;
+        color: white;
+        padding: 0.1rem 0.4rem;
+        border-radius: 0.25rem;
+        font-size: 0.8rem;
+        margin-left: 0.5rem;
+    }
+    .response-example {
+        background: #272822;
+        color: #f8f8f2;
+        padding: 1rem;
+        border-radius: 0.25rem;
+        margin-top: 1rem;
+        font-family: monospace;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h1 class="mb-4">Authentication API Documentation</h1>
+
+    <div class="security-note">
+        <h5><i class="fas fa-shield-alt"></i> Security Note</h5>
+        <p class="mb-0">All authentication endpoints use HTTPS. Tokens are valid for 24 hours. Refresh tokens are valid for 7 days.</p>
+    </div>
+
+    <!-- Authentication -->
+    <div class="api-section">
+        <h2>Authentication</h2>
+
+        <!-- Login -->
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <span class="endpoint-url">/api/auth/login/</span>
+            <p>Authenticate user and receive access token</p>
+
+            <h6>Request Body:</h6>
+            <div class="response-example">
+                <pre>{
+    "email": "user@example.com",
+    "password": "secure_password"
+}</pre>
+            </div>
+
+            <h6>Response:</h6>
+            <div class="response-example">
+                <pre>{
+    "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...",
+    "refresh_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...",
+    "token_type": "Bearer",
+    "expires_in": 86400
+}</pre>
+            </div>
+        </div>
+
+        <!-- Refresh Token -->
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <span class="endpoint-url">/api/auth/refresh/</span>
+            <p>Get new access token using refresh token</p>
+
+            <h6>Request Body:</h6>
+            <div class="response-example">
+                <pre>{
+    "refresh_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."
+}</pre>
+            </div>
+        </div>
+
+        <!-- Logout -->
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <span class="endpoint-url">/api/auth/logout/</span>
+            <p>Invalidate current access token</p>
+        </div>
+    </div>
+
+    <!-- User Management -->
+    <div class="api-section">
+        <h2>User Management</h2>
+
+        <!-- Register -->
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <span class="endpoint-url">/api/auth/register/</span>
+            <p>Register a new user account</p>
+
+            <h6>Request Body:</h6>
+            <div class="response-example">
+                <pre>{
+    "email": "user@example.com",
+    "password": "secure_password",
+    "confirm_password": "secure_password",
+    "first_name": "John",
+    "last_name": "Doe",
+    "user_type": "startup",  // or "organization"
+    "phone_number": "+25779123456"
+}</pre>
+            </div>
+        </div>
+
+        <!-- Verify Email -->
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <span class="endpoint-url">/api/auth/verify-email/</span>
+            <p>Verify user email address</p>
+
+            <h6>Request Body:</h6>
+            <div class="response-example">
+                <pre>{
+    "token": "verification_token"
+}</pre>
+            </div>
+        </div>
+
+        <!-- Reset Password Request -->
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <span class="endpoint-url">/api/auth/reset-password-request/</span>
+            <p>Request password reset email</p>
+
+            <h6>Request Body:</h6>
+            <div class="response-example">
+                <pre>{
+    "email": "user@example.com"
+}</pre>
+            </div>
+        </div>
+
+        <!-- Reset Password -->
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <span class="endpoint-url">/api/auth/reset-password/</span>
+            <p>Reset user password</p>
+
+            <h6>Request Body:</h6>
+            <div class="response-example">
+                <pre>{
+    "token": "reset_token",
+    "new_password": "new_secure_password",
+    "confirm_password": "new_secure_password"
+}</pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- Profile Management -->
+    <div class="api-section">
+        <h2>Profile Management</h2>
+
+        <!-- Get Profile -->
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <span class="endpoint-url">/api/auth/profile/</span>
+            <p>Get current user profile</p>
+
+            <h6>Response:</h6>
+            <div class="response-example">
+                <pre>{
+    "id": 1,
+    "email": "user@example.com",
+    "first_name": "John",
+    "last_name": "Doe",
+    "user_type": "startup",
+    "phone_number": "+25779123456",
+    "profile_picture": "https://example.com/profile.jpg",
+    "created_at": "2024-01-01T00:00:00Z",
+    "last_login": "2024-01-15T12:30:00Z"
+}</pre>
+            </div>
+        </div>
+
+        <!-- Update Profile -->
+        <div class="endpoint">
+            <span class="method put">PUT</span>
+            <span class="endpoint-url">/api/auth/profile/</span>
+            <p>Update user profile</p>
+
+            <h6>Request Body:</h6>
+            <div class="response-example">
+                <pre>{
+    "first_name": "John",
+    "last_name": "Doe",
+    "phone_number": "+25779123456",
+    "profile_picture": "base64_encoded_image"
+}</pre>
+            </div>
+        </div>
+
+        <!-- Change Password -->
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <span class="endpoint-url">/api/auth/change-password/</span>
+            <p>Change user password</p>
+
+            <h6>Request Body:</h6>
+            <div class="response-example">
+                <pre>{
+    "current_password": "current_password",
+    "new_password": "new_secure_password",
+    "confirm_password": "new_secure_password"
+}</pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- Security Settings -->
+    <div class="api-section">
+        <h2>Security Settings</h2>
+
+        <!-- Enable 2FA -->
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <span class="endpoint-url">/api/auth/2fa/enable/</span>
+            <p>Enable two-factor authentication</p>
+
+            <h6>Response:</h6>
+            <div class="response-example">
+                <pre>{
+    "secret_key": "JBSWY3DPEHPK3PXP",
+    "qr_code": "base64_encoded_qr_code"
+}</pre>
+            </div>
+        </div>
+
+        <!-- Verify 2FA -->
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <span class="endpoint-url">/api/auth/2fa/verify/</span>
+            <p>Verify two-factor authentication code</p>
+
+            <h6>Request Body:</h6>
+            <div class="response-example">
+                <pre>{
+    "code": "123456"
+}</pre>
+            </div>
+        </div>
+
+        <!-- Disable 2FA -->
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <span class="endpoint-url">/api/auth/2fa/disable/</span>
+            <p>Disable two-factor authentication</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Add copy functionality for endpoint URLs
+    document.querySelectorAll('.endpoint-url').forEach(element => {
+        element.addEventListener('click', function() {
+            const text = this.textContent;
+            navigator.clipboard.writeText(text).then(() => {
+                const originalText = this.textContent;
+                this.textContent = 'Copied!';
+                setTimeout(() => {
+                    this.textContent = originalText;
+                }, 1000);
+            });
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,241 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ submission.title }} - {{ submission.project_call.title }} - Community Lab{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a href="{% url 'organizations:project_call_list' %}">Appels à projets</a>
+                </li>
+                <li class="breadcrumb-item">
+                    <a href="{% url 'organizations:project_call_detail' submission.project_call.id %}">
+                        {{ submission.project_call.title }}
+                    </a>
+                </li>
+                <li class="breadcrumb-item active">{{ submission.title }}</li>
+            </ol>
+        </nav>
+
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h1 class="card-title mb-0">{{ submission.title }}</h1>
+                    <span class="badge {% if submission.status == 'ACCEPTED' %}bg-success{% elif submission.status == 'REJECTED' %}bg-danger{% else %}bg-secondary{% endif %}">
+                        {{ submission.get_status_display }}
+                    </span>
+                </div>
+
+                <div class="mb-4">
+                    <h5>Informations générales</h5>
+                    <ul class="list-unstyled">
+                        <li class="mb-2">
+                            <i class="fas fa-building"></i>
+                            <strong>Startup :</strong>
+                            <a href="{% url 'startups:startup_detail' submission.startup.id %}">
+                                {{ submission.startup.name }}
+                            </a>
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-calendar-alt"></i>
+                            <strong>Date de soumission :</strong>
+                            {{ submission.submitted_at|date:"d/m/Y H:i" }}
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-money-bill-wave"></i>
+                            <strong>Financement demandé :</strong>
+                            {{ submission.requested_funding }} BIF
+                        </li>
+                        {% if submission.status != 'PENDING' %}
+                            <li>
+                                <i class="fas fa-clock"></i>
+                                <strong>Date de décision :</strong>
+                                {{ submission.reviewed_at|date:"d/m/Y" }}
+                            </li>
+                        {% endif %}
+                    </ul>
+                </div>
+
+                <div class="mb-4">
+                    <h5>Description du projet</h5>
+                    {{ submission.description|linebreaks }}
+                </div>
+
+                <div class="mb-4">
+                    <h5>Objectifs</h5>
+                    {{ submission.objectives|linebreaks }}
+                </div>
+
+                <div class="mb-4">
+                    <h5>Impact attendu</h5>
+                    {{ submission.impact|linebreaks }}
+                </div>
+
+                <div class="mb-4">
+                    <h5>Détail du budget</h5>
+                    {{ submission.budget_breakdown|linebreaks }}
+                </div>
+
+                <div class="mb-4">
+                    <h5>Documents</h5>
+                    <ul class="list-group">
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <i class="fas fa-file-pdf"></i>
+                                Présentation du projet
+                            </div>
+                            <a href="{{ submission.presentation.url }}" class="btn btn-sm btn-outline-primary" 
+                               target="_blank">
+                                <i class="fas fa-download"></i> Télécharger
+                            </a>
+                        </li>
+                        {% if submission.additional_documents %}
+                            {% for document in submission.additional_documents.all %}
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <i class="fas fa-file-alt"></i>
+                                        {{ document.title }}
+                                    </div>
+                                    <a href="{{ document.file.url }}" class="btn btn-sm btn-outline-primary" 
+                                       target="_blank">
+                                        <i class="fas fa-download"></i> Télécharger
+                                    </a>
+                                </li>
+                            {% endfor %}
+                        {% endif %}
+                    </ul>
+                </div>
+
+                {% if submission.feedback %}
+                    <div class="mb-4">
+                        <h5>Retour d'évaluation</h5>
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                {{ submission.feedback|linebreaks }}
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+
+                {% if user.is_organization_member and user.organization == submission.project_call.organization and submission.status == 'PENDING' %}
+                    <div class="mb-4">
+                        <h5>Évaluation</h5>
+                        <form method="post" action="{% url 'organizations:project_submission_review' submission.id %}">
+                            {% csrf_token %}
+                            
+                            <div class="mb-3">
+                                <label for="feedback" class="form-label">Commentaires d'évaluation</label>
+                                <textarea name="feedback" id="feedback" class="form-control" rows="5" required></textarea>
+                            </div>
+
+                            <div class="d-flex justify-content-end gap-2">
+                                <button type="submit" name="action" value="reject" 
+                                        class="btn btn-danger">
+                                    Refuser
+                                </button>
+                                <button type="submit" name="action" value="accept" 
+                                        class="btn btn-success">
+                                    Accepter
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title">À propos de la startup</h5>
+                <div class="d-flex align-items-center mb-3">
+                    {% if submission.startup.logo %}
+                        <img src="{{ submission.startup.logo.url }}" class="rounded-circle me-3" 
+                             width="64" height="64" alt="{{ submission.startup.name }}">
+                    {% endif %}
+                    <div>
+                        <h6 class="mb-0">{{ submission.startup.name }}</h6>
+                        <p class="text-muted mb-0">{{ submission.startup.sector }}</p>
+                    </div>
+                </div>
+                <p>{{ submission.startup.description|truncatewords:50 }}</p>
+                <a href="{% url 'startups:startup_detail' submission.startup.id %}" 
+                   class="btn btn-outline-primary btn-sm">
+                    Voir le profil
+                </a>
+            </div>
+        </div>
+
+        {% if user.is_startup_member and user.startup == submission.startup %}
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Actions</h5>
+                    {% if submission.status == 'PENDING' %}
+                        <a href="{% url 'organizations:project_submission_edit' submission.id %}" 
+                           class="btn btn-primary w-100 mb-2">
+                            Modifier la soumission
+                        </a>
+                        <button type="button" class="btn btn-danger w-100" data-bs-toggle="modal" 
+                                data-bs-target="#withdrawModal">
+                            Retirer la soumission
+                        </button>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Modal de confirmation de retrait -->
+            <div class="modal fade" id="withdrawModal" tabindex="-1">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Confirmer le retrait</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <p>Êtes-vous sûr de vouloir retirer votre soumission ? Cette action est irréversible.</p>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                            <form method="post" action="{% url 'organizations:project_submission_withdraw' submission.id %}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-danger">Confirmer le retrait</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+
+        {% if similar_submissions %}
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Autres soumissions</h5>
+                    <div class="list-group list-group-flush">
+                        {% for similar in similar_submissions %}
+                            <a href="{% url 'organizations:project_submission_detail' similar.id %}" 
+                               class="list-group-item list-group-item-action">
+                                <h6 class="mb-1">{{ similar.title }}</h6>
+                                <p class="mb-1 text-muted small">
+                                    Par {{ similar.startup.name }}
+                                </p>
+                                <small>
+                                    <span class="badge {% if similar.status == 'ACCEPTED' %}bg-success{% elif similar.status == 'REJECTED' %}bg-danger{% else %}bg-secondary{% endif %}">
+                                        {{ similar.get_status_display }}
+                                    </span>
+                                </small>
+                            </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+{% endblock %}

@@ -1,0 +1,166 @@
+{% extends 'base.html' %}
+
+{% block title %}Compétitions - Community Lab{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h1>Compétitions</h1>
+    </div>
+    {% if user.is_authenticated and user.is_organization_member %}
+    <div class="col-md-4 text-end">
+        <a href="{% url 'organizations:competition_create' %}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Créer une compétition
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-12">
+        <form method="get" class="card p-3">
+            <div class="row">
+                <div class="col-md-4">
+                    <input type="text" name="search" class="form-control" 
+                           placeholder="Rechercher une compétition..." 
+                           value="{{ request.GET.search }}">
+                </div>
+                <div class="col-md-3">
+                    <select name="status" class="form-select">
+                        <option value="">Tous les statuts</option>
+                        <option value="UPCOMING" {% if request.GET.status == 'UPCOMING' %}selected{% endif %}>À venir</option>
+                        <option value="ONGOING" {% if request.GET.status == 'ONGOING' %}selected{% endif %}>En cours</option>
+                        <option value="COMPLETED" {% if request.GET.status == 'COMPLETED' %}selected{% endif %}>Terminée</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select name="category" class="form-select">
+                        <option value="">Toutes les catégories</option>
+                        {% for category in categories %}
+                            <option value="{{ category.id }}" {% if request.GET.category == category.id|stringformat:"s" %}selected{% endif %}>
+                                {{ category.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">Filtrer</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="row">
+    {% if competitions %}
+        {% for competition in competitions %}
+            <div class="col-md-6 mb-4">
+                <div class="card h-100">
+                    {% if competition.image %}
+                        <img src="{{ competition.image.url }}" class="card-img-top" alt="{{ competition.title }}">
+                    {% endif %}
+                    <div class="card-body">
+                        <h5 class="card-title">{{ competition.title }}</h5>
+                        <p class="card-text">{{ competition.description|truncatewords:30 }}</p>
+                        
+                        <div class="mb-3">
+                            <span class="badge {% if competition.status == 'UPCOMING' %}bg-info{% elif competition.status == 'ONGOING' %}bg-success{% else %}bg-secondary{% endif %}">
+                                {{ competition.get_status_display }}
+                            </span>
+                            {% if competition.prize_pool %}
+                                <span class="badge bg-primary">
+                                    Prix : {{ competition.prize_pool }} BIF
+                                </span>
+                            {% endif %}
+                            <span class="badge bg-secondary">{{ competition.category.name }}</span>
+                        </div>
+
+                        <div class="mb-3">
+                            <p class="mb-1">
+                                <i class="fas fa-building"></i>
+                                Par {{ competition.organization.name }}
+                            </p>
+                            <p class="mb-1">
+                                <i class="fas fa-calendar-alt"></i>
+                                Du {{ competition.start_date|date:"d/m/Y" }} au {{ competition.end_date|date:"d/m/Y" }}
+                            </p>
+                            <p class="mb-0">
+                                <i class="fas fa-users"></i>
+                                {{ competition.participants.count }}/{{ competition.max_participants }} participants
+                            </p>
+                        </div>
+                    </div>
+                    <div class="card-footer bg-white">
+                        <div class="d-flex justify-content-between align-items-center">
+                            {% if competition.is_registration_open %}
+                                {% if user.is_authenticated %}
+                                    {% if not user in competition.participants.all %}
+                                        <form method="post" action="{% url 'organizations:competition_register' competition.id %}">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-primary">S'inscrire</button>
+                                        </form>
+                                    {% else %}
+                                        <span class="text-success">
+                                            <i class="fas fa-check-circle"></i> Inscrit
+                                        </span>
+                                    {% endif %}
+                                {% else %}
+                                    <a href="{% url 'accounts:login' %}?next={{ request.path }}" class="btn btn-primary">
+                                        Se connecter pour s'inscrire
+                                    </a>
+                                {% endif %}
+                            {% else %}
+                                <span class="text-muted">Inscriptions fermées</span>
+                            {% endif %}
+                            <a href="{% url 'organizations:competition_detail' competition.id %}" 
+                               class="btn btn-outline-primary">
+                                Détails
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    {% else %}
+        <div class="col-12">
+            <div class="alert alert-info">
+                Aucune compétition ne correspond à vos critères de recherche.
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+{% if is_paginated %}
+<nav aria-label="Navigation des pages">
+    <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}">Précédent</a>
+            </li>
+        {% endif %}
+
+        {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+                <li class="page-item active">
+                    <span class="page-link">{{ num }}</span>
+                </li>
+            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ num }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}">{{ num }}</a>
+                </li>
+            {% endif %}
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}">Suivant</a>
+            </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+{% endblock %}

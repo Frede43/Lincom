@@ -1,0 +1,25 @@
+{% extends "notifs/email/base_email.html" %}
+
+{% block content %}
+<h2>Demande de mentorat acceptée</h2>
+
+<p>Félicitations {{ mentor_name }} !</p>
+
+<p>Votre demande de mentorat pour la startup <strong>{{ startup_name }}</strong> a été acceptée.</p>
+
+<p>Vous pouvez maintenant :</p>
+<ul>
+    <li>Accéder au tableau de bord de la startup</li>
+    <li>Communiquer avec l'équipe</li>
+    <li>Partager votre expertise</li>
+</ul>
+
+<div class="cta-button">
+    <a href="{{ site_url }}{% url 'startup_detail' startup.slug %}" class="button">Voir la startup</a>
+</div>
+
+<p>Nous vous souhaitons une excellente collaboration !</p>
+
+<p>Cordialement,<br>
+L'équipe Community Lab</p>
+{% endblock %}

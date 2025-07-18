@@ -1,0 +1,249 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Membres - {{ organization.name }} - Community Lab{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <nav aria-label="breadcrumb" class="mb-4">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a href="{% url 'organizations:organization_list' %}">Organisations</a>
+                </li>
+                <li class="breadcrumb-item">
+                    <a href="{% url 'organizations:organization_detail' organization.id %}">
+                        {{ organization.name }}
+                    </a>
+                </li>
+                <li class="breadcrumb-item active">Membres</li>
+            </ol>
+        </nav>
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>Membres de l'organisation</h1>
+            {% if user.is_organization_admin %}
+                <a href="{% url 'organizations:member_invite' organization.id %}" class="btn btn-primary">
+                    <i class="fas fa-user-plus"></i> Inviter un membre
+                </a>
+            {% endif %}
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-body">
+                <form method="get" class="mb-4">
+                    <div class="input-group">
+                        <input type="text" name="search" class="form-control" 
+                               placeholder="Rechercher un membre..." 
+                               value="{{ request.GET.search }}">
+                        <select name="role" class="form-select" style="max-width: 200px;">
+                            <option value="">Tous les rôles</option>
+                            {% for role in roles %}
+                                <option value="{{ role.0 }}" {% if request.GET.role == role.0 %}selected{% endif %}>
+                                    {{ role.1 }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </form>
+
+                {% if members %}
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Membre</th>
+                                    <th>Rôle</th>
+                                    <th>Date d'adhésion</th>
+                                    {% if user.is_organization_admin %}
+                                        <th>Actions</th>
+                                    {% endif %}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for member in members %}
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                {% if member.user.profile.avatar %}
+                                                    <img src="{{ member.user.profile.avatar.url }}" 
+                                                         class="rounded-circle me-3" 
+                                                         style="width: 40px; height: 40px;" 
+                                                         alt="{{ member.user.get_full_name }}">
+                                                {% endif %}
+                                                <div>
+                                                    <h6 class="mb-0">
+                                                        <a href="{% url 'accounts:profile_detail' member.user.username %}" 
+                                                           class="text-decoration-none">
+                                                            {{ member.user.get_full_name }}
+                                                        </a>
+                                                    </h6>
+                                                    <small class="text-muted">{{ member.user.email }}</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span class="badge {% if member.role == 'ADMIN' %}bg-danger{% elif member.role == 'MANAGER' %}bg-warning{% else %}bg-info{% endif %}">
+                                                {{ member.get_role_display }}
+                                            </span>
+                                        </td>
+                                        <td>{{ member.joined_at|date:"d/m/Y" }}</td>
+                                        {% if user.is_organization_admin %}
+                                            <td>
+                                                <div class="btn-group">
+                                                    <button type="button" 
+                                                            class="btn btn-sm btn-outline-secondary dropdown-toggle" 
+                                                            data-bs-toggle="dropdown" 
+                                                            aria-expanded="false">
+                                                        Actions
+                                                    </button>
+                                                    <ul class="dropdown-menu">
+                                                        <li>
+                                                            <a href="{% url 'organizations:member_edit' organization.id member.id %}" 
+                                                               class="dropdown-item">
+                                                                <i class="fas fa-edit"></i> Modifier le rôle
+                                                            </a>
+                                                        </li>
+                                                        {% if member.user != user %}
+                                                            <li>
+                                                                <hr class="dropdown-divider">
+                                                            </li>
+                                                            <li>
+                                                                <form method="post" 
+                                                                      action="{% url 'organizations:member_remove' organization.id member.id %}" 
+                                                                      class="d-inline">
+                                                                    {% csrf_token %}
+                                                                    <button type="submit" 
+                                                                            class="dropdown-item text-danger" 
+                                                                            onclick="return confirm('Êtes-vous sûr de vouloir retirer ce membre ?');">
+                                                                        <i class="fas fa-user-minus"></i> Retirer
+                                                                    </button>
+                                                                </form>
+                                                            </li>
+                                                        {% endif %}
+                                                    </ul>
+                                                </div>
+                                            </td>
+                                        {% endif %}
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    {% if is_paginated %}
+                        <nav aria-label="Navigation des pages" class="mt-4">
+                            <ul class="pagination justify-content-center">
+                                {% if page_obj.has_previous %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.role %}&role={{ request.GET.role }}{% endif %}">
+                                            Précédent
+                                        </a>
+                                    </li>
+                                {% endif %}
+
+                                {% for num in page_obj.paginator.page_range %}
+                                    {% if page_obj.number == num %}
+                                        <li class="page-item active">
+                                            <span class="page-link">{{ num }}</span>
+                                        </li>
+                                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ num }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.role %}&role={{ request.GET.role }}{% endif %}">
+                                                {{ num }}
+                                            </a>
+                                        </li>
+                                    {% endif %}
+                                {% endfor %}
+
+                                {% if page_obj.has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.role %}&role={{ request.GET.role }}{% endif %}">
+                                            Suivant
+                                        </a>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                    {% endif %}
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                        <h5>Aucun membre trouvé</h5>
+                        <p class="text-muted">
+                            {% if request.GET.search or request.GET.role %}
+                                Aucun membre ne correspond à vos critères de recherche.
+                            {% else %}
+                                Cette organisation n'a pas encore de membres.
+                            {% endif %}
+                        </p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title">Statistiques</h5>
+                <div class="row text-center">
+                    <div class="col-4">
+                        <h3>{{ total_members }}</h3>
+                        <p class="text-muted mb-0">Total</p>
+                    </div>
+                    <div class="col-4">
+                        <h3>{{ admin_count }}</h3>
+                        <p class="text-muted mb-0">Admins</p>
+                    </div>
+                    <div class="col-4">
+                        <h3>{{ manager_count }}</h3>
+                        <p class="text-muted mb-0">Managers</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% if pending_requests %}
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Demandes en attente</h5>
+                    <div class="list-group list-group-flush">
+                        {% for request in pending_requests %}
+                            <div class="list-group-item">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-1">{{ request.user.get_full_name }}</h6>
+                                        <small class="text-muted">
+                                            Demande envoyée le {{ request.created_at|date:"d/m/Y" }}
+                                        </small>
+                                    </div>
+                                    <div>
+                                        <a href="{% url 'organizations:join_request_detail' organization.id request.id %}" 
+                                           class="btn btn-sm btn-outline-primary">
+                                            Voir
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <div class="card-footer text-center">
+                        <a href="{% url 'organizations:join_request_list' organization.id %}" 
+                           class="text-decoration-none">
+                            Voir toutes les demandes
+                        </a>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+{% endblock %}

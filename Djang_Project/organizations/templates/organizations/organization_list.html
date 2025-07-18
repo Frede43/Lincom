@@ -1,0 +1,159 @@
+{% extends 'base.html' %}
+
+{% block title %}Organisations - Community Lab{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h1>Organisations</h1>
+    </div>
+    {% if user.is_authenticated and user.is_staff %}
+    <div class="col-md-4 text-end">
+        <a href="{% url 'organizations:organization_create' %}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Ajouter une organisation
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-12">
+        <form method="get" class="card p-3">
+            <div class="row">
+                <div class="col-md-4">
+                    <input type="text" name="search" class="form-control" 
+                           placeholder="Rechercher une organisation..." 
+                           value="{{ request.GET.search }}">
+                </div>
+                <div class="col-md-3">
+                    <select name="sector" class="form-select">
+                        <option value="">Tous les secteurs</option>
+                        {% for sector in sectors %}
+                            <option value="{{ sector.0 }}" {% if request.GET.sector == sector.0 %}selected{% endif %}>
+                                {{ sector.1 }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select name="type" class="form-select">
+                        <option value="">Tous les types</option>
+                        {% for type in types %}
+                            <option value="{{ type.0 }}" {% if request.GET.type == type.0 %}selected{% endif %}>
+                                {{ type.1 }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">Filtrer</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="row">
+    {% if organizations %}
+        {% for organization in organizations %}
+            <div class="col-md-4 mb-4">
+                <div class="card h-100">
+                    <div class="position-relative">
+                        {% if organization.cover_image %}
+                            <img src="{{ organization.cover_image.url }}" class="card-img-top" 
+                                 alt="{{ organization.name }}">
+                        {% endif %}
+                        {% if organization.logo %}
+                            <img src="{{ organization.logo.url }}" 
+                                 class="position-absolute rounded-circle border border-3 border-white" 
+                                 style="width: 80px; height: 80px; bottom: -40px; left: 20px;" 
+                                 alt="{{ organization.name }} logo">
+                        {% endif %}
+                    </div>
+                    <div class="card-body pt-5">
+                        <h5 class="card-title">{{ organization.name }}</h5>
+                        <p class="card-text">{{ organization.description|truncatewords:30 }}</p>
+                        
+                        <div class="mb-3">
+                            <span class="badge bg-primary">{{ organization.get_sector_display }}</span>
+                            <span class="badge bg-secondary">{{ organization.get_type_display }}</span>
+                        </div>
+
+                        <div class="mb-3">
+                            <p class="mb-1">
+                                <i class="fas fa-map-marker-alt"></i>
+                                {{ organization.location }}
+                            </p>
+                            <p class="mb-1">
+                                <i class="fas fa-users"></i>
+                                {{ organization.members.count }} membre(s)
+                            </p>
+                            {% if organization.website %}
+                                <p class="mb-0">
+                                    <i class="fas fa-globe"></i>
+                                    <a href="{{ organization.website }}" target="_blank" rel="noopener noreferrer">
+                                        Site web
+                                    </a>
+                                </p>
+                            {% endif %}
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <small class="text-muted">
+                                    <i class="fas fa-calendar-alt"></i>
+                                    Membre depuis {{ organization.created_at|date:"m/Y" }}
+                                </small>
+                            </div>
+                            <a href="{% url 'organizations:organization_detail' organization.id %}" 
+                               class="btn btn-outline-primary">
+                                Voir le profil
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    {% else %}
+        <div class="col-12">
+            <div class="alert alert-info">
+                Aucune organisation ne correspond à vos critères de recherche.
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+{% if is_paginated %}
+<nav aria-label="Navigation des pages">
+    <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.sector %}&sector={{ request.GET.sector }}{% endif %}{% if request.GET.type %}&type={{ request.GET.type }}{% endif %}">Précédent</a>
+            </li>
+        {% endif %}
+
+        {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+                <li class="page-item active">
+                    <span class="page-link">{{ num }}</span>
+                </li>
+            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ num }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.sector %}&sector={{ request.GET.sector }}{% endif %}{% if request.GET.type %}&type={{ request.GET.type }}{% endif %}">{{ num }}</a>
+                </li>
+            {% endif %}
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.sector %}&sector={{ request.GET.sector }}{% endif %}{% if request.GET.type %}&type={{ request.GET.type }}{% endif %}">Suivant</a>
+            </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+{% endblock %}

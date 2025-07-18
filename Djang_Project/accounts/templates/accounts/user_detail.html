@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+
+{% block title %}Profil de {{ user.username }} - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body text-center">
+                {% if user.profile_picture %}
+                    <img src="{{ user.profile_picture.url }}" alt="Photo de {{ user.username }}" class="rounded-circle img-fluid mb-3" style="max-width: 200px;">
+                {% else %}
+                    <img src="https://via.placeholder.com/200" alt="Photo par défaut" class="rounded-circle img-fluid mb-3">
+                {% endif %}
+                <h3>{{ user.get_full_name|default:user.username }}</h3>
+                <p class="text-muted">{{ user.get_role_display }}</p>
+                {% if user.profile.linkedin_profile %}
+                    <a href="{{ user.profile.linkedin_profile }}" class="btn btn-primary btn-sm" target="_blank">
+                        <i class="fab fa-linkedin"></i> LinkedIn
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4>À propos</h4>
+            </div>
+            <div class="card-body">
+                {% if user.bio %}
+                    <p>{{ user.bio }}</p>
+                {% else %}
+                    <p class="text-muted">Aucune biographie disponible.</p>
+                {% endif %}
+                
+                {% if user.expertise %}
+                    <h5>Expertise</h5>
+                    <p>{{ user.expertise }}</p>
+                {% endif %}
+                
+                {% if user.profile.organization %}
+                    <h5>Organisation</h5>
+                    <p>{{ user.profile.organization }}</p>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if user.role == 'mentor' %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h4>Cours et Formations</h4>
+                </div>
+                <div class="card-body">
+                    <h5>Cours</h5>
+                    <ul class="list-group mb-3">
+                        {% for course in user.courses_taught.all %}
+                            <li class="list-group-item">
+                                <a href="{% url 'learning:course_detail' course.id %}">{{ course.title }}</a>
+                            </li>
+                        {% empty %}
+                            <li class="list-group-item">Aucun cours donné.</li>
+                        {% endfor %}
+                    </ul>
+
+                    <h5>Formations</h5>
+                    <ul class="list-group">
+                        {% for training in user.trainings_conducted.all %}
+                            <li class="list-group-item">
+                                <a href="{% url 'learning:training_detail' training.id %}">{{ training.title }}</a>
+                            </li>
+                        {% empty %}
+                            <li class="list-group-item">Aucune formation donnée.</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        {% endif %}
+
+        {% if user.role == 'entrepreneur' %}
+            <div class="card">
+                <div class="card-header">
+                    <h4>Startups</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% for startup in user.founded_startups.all %}
+                            <div class="col-md-6 mb-3">
+                                <div class="card h-100">
+                                    <div class="card-body">
+                                        <h5 class="card-title">{{ startup.name }}</h5>
+                                        <p class="card-text">{{ startup.description|truncatewords:30 }}</p>
+                                        <a href="{% url 'startups:startup_detail' startup.id %}" class="btn btn-primary btn-sm">Voir plus</a>
+                                    </div>
+                                </div>
+                            </div>
+                        {% empty %}
+                            <div class="col-12">
+                                <p class="text-muted">Aucune startup créée.</p>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

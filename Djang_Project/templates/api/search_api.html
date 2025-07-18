@@ -1,0 +1,311 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Search & Filtering API Documentation | {{ block.super }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .api-section {
+        margin-bottom: 2rem;
+        padding: 1.5rem;
+        border-radius: 0.5rem;
+        background: #fff;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .endpoint {
+        border-left: 4px solid #3498db;
+        padding: 1rem;
+        margin: 1rem 0;
+        background: #f8f9fa;
+    }
+    .method {
+        display: inline-block;
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.25rem;
+        font-weight: bold;
+        margin-right: 0.5rem;
+    }
+    .get { background: #28a745; color: white; }
+    .post { background: #007bff; color: white; }
+    .endpoint-url {
+        font-family: monospace;
+        padding: 0.25rem;
+        background: #e9ecef;
+        border-radius: 0.25rem;
+        cursor: pointer;
+    }
+    .search-note {
+        background: #fff3cd;
+        border: 1px solid #ffeeba;
+        padding: 1rem;
+        border-radius: 0.25rem;
+        margin-bottom: 1.5rem;
+    }
+    .response-example {
+        background: #272822;
+        color: #f8f8f2;
+        padding: 1rem;
+        border-radius: 0.25rem;
+        margin-top: 1rem;
+        font-family: monospace;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h1 class="mb-4">Search & Filtering API Documentation</h1>
+
+    <div class="search-note">
+        <h5><i class="fas fa-search"></i> Search Capabilities</h5>
+        <p class="mb-0">The search API supports full-text search, fuzzy matching, and advanced filtering options. Results are ranked by relevance score.</p>
+    </div>
+
+    <!-- Global Search -->
+    <div class="api-section">
+        <h2>Global Search</h2>
+
+        <!-- Search All -->
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <span class="endpoint-url">/api/search/</span>
+            <p>Search across all content types</p>
+
+            <h6>Query Parameters:</h6>
+            <table class="table params-table">
+                <thead>
+                    <tr>
+                        <th>Parameter</th>
+                        <th>Type</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>q</td>
+                        <td>string</td>
+                        <td>Search query</td>
+                    </tr>
+                    <tr>
+                        <td>type</td>
+                        <td>string</td>
+                        <td>Filter by content type (startup, project, event)</td>
+                    </tr>
+                    <tr>
+                        <td>sort</td>
+                        <td>string</td>
+                        <td>Sort order (relevance, date, name)</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h6>Response:</h6>
+            <div class="response-example">
+                <pre>{
+    "total_results": 125,
+    "execution_time": 0.234,
+    "results": {
+        "startups": [
+            {
+                "id": 1,
+                "type": "startup",
+                "name": "TechStart Burundi",
+                "description": "Innovation technologique",
+                "relevance_score": 0.95,
+                "highlight": {
+                    "name": "<em>Tech</em>Start Burundi",
+                    "description": "Innovation <em>technologique</em>"
+                }
+            }
+        ],
+        "projects": [...],
+        "events": [...]
+    }
+}</pre>
+            </div>
+        </div>
+
+        <!-- Autocomplete -->
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <span class="endpoint-url">/api/search/autocomplete/</span>
+            <p>Get search suggestions</p>
+
+            <h6>Query Parameters:</h6>
+            <table class="table params-table">
+                <thead>
+                    <tr>
+                        <th>Parameter</th>
+                        <th>Type</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>q</td>
+                        <td>string</td>
+                        <td>Partial search query</td>
+                    </tr>
+                    <tr>
+                        <td>limit</td>
+                        <td>integer</td>
+                        <td>Maximum number of suggestions</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Advanced Search -->
+    <div class="api-section">
+        <h2>Advanced Search</h2>
+
+        <!-- Advanced Search -->
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <span class="endpoint-url">/api/search/advanced/</span>
+            <p>Perform advanced search with complex filters</p>
+
+            <h6>Request Body:</h6>
+            <div class="response-example">
+                <pre>{
+    "query": "tech startup",
+    "filters": {
+        "type": ["startup", "project"],
+        "sector": ["Technology", "Education"],
+        "location": "Bujumbura",
+        "date_range": {
+            "start": "2024-01-01",
+            "end": "2024-12-31"
+        },
+        "custom_fields": {
+            "team_size": {"min": 5, "max": 20},
+            "funding_stage": ["seed", "series_a"]
+        }
+    },
+    "sort": [
+        {"field": "relevance", "order": "desc"},
+        {"field": "date", "order": "desc"}
+    ],
+    "page": 1,
+    "per_page": 20
+}</pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="api-section">
+        <h2>Filters</h2>
+
+        <!-- Available Filters -->
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <span class="endpoint-url">/api/search/filters/</span>
+            <p>Get available search filters</p>
+
+            <h6>Response:</h6>
+            <div class="response-example">
+                <pre>{
+    "content_types": [
+        {"id": "startup", "name": "Startups"},
+        {"id": "project", "name": "Projects"},
+        {"id": "event", "name": "Events"}
+    ],
+    "sectors": [
+        {"id": "technology", "name": "Technology"},
+        {"id": "agriculture", "name": "Agriculture"},
+        {"id": "education", "name": "Education"}
+    ],
+    "locations": [
+        {"id": "bujumbura", "name": "Bujumbura"},
+        {"id": "gitega", "name": "Gitega"}
+    ],
+    "stages": [
+        {"id": "idea", "name": "Idea Stage"},
+        {"id": "early", "name": "Early Stage"},
+        {"id": "growth", "name": "Growth Stage"}
+    ]
+}</pre>
+            </div>
+        </div>
+
+        <!-- Save Search -->
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <span class="endpoint-url">/api/search/save/</span>
+            <p>Save a search query</p>
+
+            <h6>Request Body:</h6>
+            <div class="response-example">
+                <pre>{
+    "name": "Tech Startups in Bujumbura",
+    "query": "tech startup",
+    "filters": {
+        "location": "Bujumbura",
+        "sector": "Technology"
+    },
+    "notify": true
+}</pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- Saved Searches -->
+    <div class="api-section">
+        <h2>Saved Searches</h2>
+
+        <!-- List Saved Searches -->
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <span class="endpoint-url">/api/search/saved/</span>
+            <p>List saved searches</p>
+
+            <h6>Response:</h6>
+            <div class="response-example">
+                <pre>{
+    "saved_searches": [
+        {
+            "id": 1,
+            "name": "Tech Startups in Bujumbura",
+            "query": "tech startup",
+            "filters": {
+                "location": "Bujumbura",
+                "sector": "Technology"
+            },
+            "notify": true,
+            "created_at": "2024-01-19T14:00:00Z",
+            "last_executed": "2024-01-19T15:00:00Z"
+        }
+    ]
+}</pre>
+            </div>
+        </div>
+
+        <!-- Delete Saved Search -->
+        <div class="endpoint">
+            <span class="method delete">DELETE</span>
+            <span class="endpoint-url">/api/search/saved/{id}/</span>
+            <p>Delete a saved search</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Add copy functionality for endpoint URLs
+    document.querySelectorAll('.endpoint-url').forEach(element => {
+        element.addEventListener('click', function() {
+            const text = this.textContent;
+            navigator.clipboard.writeText(text).then(() => {
+                const originalText = this.textContent;
+                this.textContent = 'Copied!';
+                setTimeout(() => {
+                    this.textContent = originalText;
+                }, 1000);
+            });
+        });
+    });
+</script>
+{% endblock %}

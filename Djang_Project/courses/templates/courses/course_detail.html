@@ -1,0 +1,187 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ course.title }} - Community Lab{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-5">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-4 col-lg-3">
+            <div class="card mb-4">
+                <div class="card-body">
+                    {% if not is_enrolled %}
+                    <form method="post" action="{% url 'courses:course_enroll' course.slug %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-primary w-100 mb-3">
+                            S'inscrire au cours
+                        </button>
+                    </form>
+                    {% else %}
+                    <a href="{% url 'courses:course_learn' course.slug %}" 
+                       class="btn btn-success w-100 mb-3">
+                        Continuer le cours
+                    </a>
+                    {% endif %}
+
+                    <div class="d-flex align-items-center mb-3">
+                        <img src="{{ course.instructor.profile_picture.url }}" 
+                             class="rounded-circle me-3" 
+                             alt="{{ course.instructor.get_full_name }}"
+                             style="width: 50px; height: 50px; object-fit: cover;">
+                        <div>
+                            <h6 class="mb-0">{{ course.instructor.get_full_name }}</h6>
+                            <small class="text-muted">Instructeur</small>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <div class="mb-3">
+                        <h6 class="mb-2">Informations du cours</h6>
+                        <ul class="list-unstyled">
+                            <li class="mb-2">
+                                <i class="fas fa-signal me-2"></i>
+                                Niveau: {{ course.get_level_display }}
+                            </li>
+                            <li class="mb-2">
+                                <i class="fas fa-language me-2"></i>
+                                Langue: {{ course.language }}
+                            </li>
+                            <li class="mb-2">
+                                <i class="fas fa-users me-2"></i>
+                                {{ course.enrollments.count }} étudiants inscrits
+                            </li>
+                            <li class="mb-2">
+                                <i class="fas fa-book me-2"></i>
+                                {{ course.modules.count }} modules
+                            </li>
+                            {% if course.start_date %}
+                            <li class="mb-2">
+                                <i class="fas fa-calendar-alt me-2"></i>
+                                Début: {{ course.start_date|date:"d/m/Y" }}
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </div>
+
+                    {% if course.prerequisites %}
+                    <hr>
+                    <div class="mb-3">
+                        <h6 class="mb-2">Prérequis</h6>
+                        {{ course.prerequisites|linebreaks }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Contenu principal -->
+        <div class="col-md-8 col-lg-9">
+            <nav aria-label="breadcrumb" class="mb-4">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a href="{% url 'courses:course_list' %}">Cours</a>
+                    </li>
+                    <li class="breadcrumb-item active">{{ course.title }}</li>
+                </ol>
+            </nav>
+
+            {% if course.image %}
+            <img src="{{ course.image.url }}" class="img-fluid rounded mb-4" 
+                 alt="{{ course.title }}" style="max-height: 400px; width: 100%; object-fit: cover;">
+            {% endif %}
+
+            <h1 class="mb-4">{{ course.title }}</h1>
+
+            <div class="row mb-5">
+                <div class="col-md-8">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title mb-3">À propos de ce cours</h5>
+                            {{ course.description|linebreaks }}
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title mb-3">Objectifs d'apprentissage</h5>
+                            {{ course.learning_objectives|linebreaks }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Programme du cours -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Programme du cours</h5>
+                </div>
+                <div class="card-body">
+                    <div class="accordion" id="courseModules">
+                        {% for module in course.modules.all %}
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="module{{ module.id }}Header">
+                                <button class="accordion-button {% if not forloop.first %}collapsed{% endif %}" 
+                                        type="button" data-bs-toggle="collapse" 
+                                        data-bs-target="#module{{ module.id }}Content">
+                                    <div class="d-flex justify-content-between w-100 me-3">
+                                        <span>{{ module.title }}</span>
+                                        <small class="text-muted">
+                                            {{ module.contents.count }} leçons
+                                        </small>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="module{{ module.id }}Content" 
+                                 class="accordion-collapse collapse {% if forloop.first %}show{% endif %}"
+                                 data-bs-parent="#courseModules">
+                                <div class="accordion-body">
+                                    <div class="list-group list-group-flush">
+                                        {% for content in module.contents.all %}
+                                        <div class="list-group-item">
+                                            <div class="d-flex align-items-center">
+                                                <i class="fas 
+                                                    {% if content.content_type == 'video' %}fa-play-circle
+                                                    {% elif content.content_type == 'text' %}fa-file-alt
+                                                    {% elif content.content_type == 'file' %}fa-file-download
+                                                    {% else %}fa-tasks{% endif %} 
+                                                    me-3 text-muted">
+                                                </i>
+                                                <div>
+                                                    <h6 class="mb-0">{{ content.title }}</h6>
+                                                    <small class="text-muted">
+                                                        {{ content.get_content_type_display }}
+                                                    </small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .accordion-button:not(.collapsed) {
+        background-color: var(--bs-primary);
+        color: white;
+    }
+    .accordion-button:not(.collapsed)::after {
+        filter: brightness(0) invert(1);
+    }
+    .list-group-item:hover {
+        background-color: var(--bs-light);
+    }
+</style>
+{% endblock %}

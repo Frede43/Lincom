@@ -1,0 +1,24 @@
+{% extends "notifs/email/base_email.html" %}
+
+{% block content %}
+<h2>Nouvelle demande de mentorat</h2>
+
+<p>Bonjour,</p>
+
+<p><strong>{{ mentor_name }}</strong> souhaite devenir mentor pour votre startup <strong>{{ startup_name }}</strong>.</p>
+
+<h3>Message de motivation :</h3>
+<p>{{ message }}</p>
+
+<h3>Domaines d'expertise :</h3>
+<p>{{ expertise_areas }}</p>
+
+<div class="cta-button">
+    <a href="{{ site_url }}{% url 'mentor_request_list' %}" class="button">Examiner la demande</a>
+</div>
+
+<p>Vous pouvez accepter ou rejeter cette demande depuis votre tableau de bord.</p>
+
+<p>Cordialement,<br>
+L'équipe Community Lab</p>
+{% endblock %}

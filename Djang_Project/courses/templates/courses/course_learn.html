@@ -1,0 +1,251 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ course.title }} - Apprentissage - Community Lab{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar avec la navigation du cours -->
+        <div class="col-md-3 col-xl-2 bg-light sidebar vh-100 overflow-auto position-fixed">
+            <div class="p-3">
+                <h5 class="mb-3">{{ course.title }}</h5>
+                
+                <!-- Barre de progression -->
+                <div class="progress mb-3" style="height: 8px;">
+                    <div class="progress-bar" role="progressbar" 
+                         style="width: {{ enrollment.get_progress }}%"
+                         aria-valuenow="{{ enrollment.get_progress }}" 
+                         aria-valuemin="0" aria-valuemax="100">
+                    </div>
+                </div>
+                <p class="text-center small mb-4">
+                    {{ enrollment.get_progress }}% complété
+                </p>
+                
+                <!-- Navigation des modules -->
+                <div class="list-group list-group-flush">
+                    {% for module in course.modules.all %}
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h6 class="mb-0">{{ module.title }}</h6>
+                            <span class="badge bg-secondary">
+                                {{ module.contents.count }} leçons
+                            </span>
+                        </div>
+                        
+                        <div class="list-group">
+                            {% for content in module.contents.all %}
+                            <a href="{% url 'courses:course_learn' course.slug %}?module={{ module.id }}&content={{ content.id }}"
+                               class="list-group-item list-group-item-action {% if content == current_content %}active{% endif %}">
+                                <div class="d-flex align-items-center">
+                                    {% if content.id in progress %}
+                                        <i class="fas fa-check-circle text-success me-2"></i>
+                                    {% elif content == current_content %}
+                                        <i class="fas fa-play-circle text-primary me-2"></i>
+                                    {% else %}
+                                        <i class="far fa-circle me-2"></i>
+                                    {% endif %}
+                                    
+                                    <div class="flex-grow-1">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <span class="text-truncate">{{ content.title }}</span>
+                                            <i class="fas 
+                                                {% if content.content_type == 'video' %}fa-play
+                                                {% elif content.content_type == 'text' %}fa-file-alt
+                                                {% elif content.content_type == 'file' %}fa-file-download
+                                                {% else %}fa-tasks{% endif %} 
+                                                ms-2">
+                                            </i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Contenu principal -->
+        <div class="col-md-9 col-xl-10 ms-auto">
+            <div class="p-4">
+                <!-- Navigation du contenu -->
+                <nav aria-label="breadcrumb" class="mb-4">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item">
+                            <a href="{% url 'courses:course_detail' course.slug %}">
+                                {{ course.title }}
+                            </a>
+                        </li>
+                        <li class="breadcrumb-item">
+                            {{ current_module.title }}
+                        </li>
+                        <li class="breadcrumb-item active">
+                            {{ current_content.title }}
+                        </li>
+                    </ol>
+                </nav>
+
+                <!-- Contenu de la leçon -->
+                <div class="card">
+                    <div class="card-body">
+                        <h2 class="card-title mb-4">{{ current_content.title }}</h2>
+                        
+                        {% if current_content.content_type == 'video' %}
+                            <div class="ratio ratio-16x9 mb-4">
+                                <iframe src="{{ current_content.video_url }}" 
+                                        allowfullscreen 
+                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture">
+                                </iframe>
+                            </div>
+                        {% endif %}
+                        
+                        {% if current_content.text_content %}
+                            <div class="content-text mb-4">
+                                {{ current_content.text_content|safe }}
+                            </div>
+                        {% endif %}
+                        
+                        {% if current_content.file %}
+                            <div class="mb-4">
+                                <a href="{{ current_content.file.url }}" 
+                                   class="btn btn-outline-primary" 
+                                   download>
+                                    <i class="fas fa-download me-2"></i>
+                                    Télécharger le fichier
+                                </a>
+                            </div>
+                        {% endif %}
+                        
+                        {% if current_content.content_type == 'assignment' %}
+                            <div class="assignment-section mb-4">
+                                <h4>Devoir</h4>
+                                {{ current_content.assignment.description|safe }}
+                                
+                                {% if not current_content.assignment.submissions.filter(student=request.user).exists %}
+                                    <form method="post" 
+                                          action="{% url 'courses:submit_assignment' current_content.id %}"
+                                          enctype="multipart/form-data" 
+                                          class="mt-3">
+                                        {% csrf_token %}
+                                        <div class="mb-3">
+                                            <label for="file" class="form-label">
+                                                Fichier de soumission
+                                            </label>
+                                            <input type="file" class="form-control" 
+                                                   id="file" name="file" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="comments" class="form-label">
+                                                Commentaires (optionnel)
+                                            </label>
+                                            <textarea class="form-control" id="comments" 
+                                                      name="comments" rows="3"></textarea>
+                                        </div>
+                                        <button type="submit" class="btn btn-primary">
+                                            Soumettre le devoir
+                                        </button>
+                                    </form>
+                                {% else %}
+                                    {% with submission=current_content.assignment.submissions.get(student=request.user) %}
+                                    <div class="alert alert-info mt-3">
+                                        <h5>Votre soumission</h5>
+                                        <p>Soumis le: {{ submission.submitted_at|date:"d/m/Y H:i" }}</p>
+                                        <p>Statut: {{ submission.get_status_display }}</p>
+                                        {% if submission.score %}
+                                            <p>Score: {{ submission.score }}/{{ submission.assignment.max_score }}</p>
+                                        {% endif %}
+                                        {% if submission.comments %}
+                                            <h6>Vos commentaires:</h6>
+                                            <p>{{ submission.comments }}</p>
+                                        {% endif %}
+                                    </div>
+                                    {% endwith %}
+                                {% endif %}
+                            </div>
+                        {% endif %}
+                        
+                        <!-- Navigation et marquage de progression -->
+                        <div class="d-flex justify-content-between align-items-center mt-4">
+                            {% if previous_content %}
+                                <a href="{% url 'courses:course_learn' course.slug %}?module={{ current_module.id }}&content={{ previous_content.id }}"
+                                   class="btn btn-outline-primary">
+                                    <i class="fas fa-arrow-left me-2"></i>
+                                    Précédent
+                                </a>
+                            {% else %}
+                                <div></div>
+                            {% endif %}
+
+                            {% if current_content.id not in progress %}
+                                <form method="post" class="d-inline">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="complete" value="1">
+                                    <button type="submit" class="btn btn-success">
+                                        Marquer comme terminé
+                                    </button>
+                                </form>
+                            {% endif %}
+
+                            {% if next_content %}
+                                <a href="{% url 'courses:course_learn' course.slug %}?module={{ current_module.id }}&content={{ next_content.id }}"
+                                   class="btn btn-outline-primary">
+                                    Suivant
+                                    <i class="fas fa-arrow-right ms-2"></i>
+                                </a>
+                            {% else %}
+                                {% if current_module.is_last %}
+                                    <form method="post" 
+                                          action="{% url 'courses:complete_course' course.slug %}"
+                                          class="d-inline">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-success">
+                                            Terminer le cours
+                                        </button>
+                                    </form>
+                                {% endif %}
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .sidebar {
+        height: calc(100vh - 56px);
+        top: 56px;
+    }
+    .list-group-item.active {
+        background-color: var(--bs-primary);
+        border-color: var(--bs-primary);
+    }
+    .content-text {
+        font-size: 1.1rem;
+        line-height: 1.8;
+    }
+    .content-text img {
+        max-width: 100%;
+        height: auto;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Scroll to current content in sidebar
+    const activeItem = document.querySelector('.list-group-item.active');
+    if (activeItem) {
+        activeItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+});
+</script>
+{% endblock %}

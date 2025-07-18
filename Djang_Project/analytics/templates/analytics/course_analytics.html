@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+
+{% block title %}Analytiques des cours - Community Lab{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <h1>Analytiques des cours</h1>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'analytics:dashboard' %}">Tableau de bord</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Cours</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <div class="row">
+        {% for analytic in analytics %}
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">{{ analytic.course.title }}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="text-center mb-3">
+                                <h6 class="text-muted">Étudiants inscrits</h6>
+                                <h2>{{ analytic.total_students }}</h2>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-center mb-3">
+                                <h6 class="text-muted">Progression moyenne</h6>
+                                <h2>{{ analytic.average_progress|floatformat:1 }}%</h2>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-center mb-3">
+                                <h6 class="text-muted">Taux de complétion</h6>
+                                <h2>{{ analytic.completion_rate|floatformat:1 }}%</h2>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="progress" style="height: 10px;">
+                        <div class="progress-bar bg-success" role="progressbar" 
+                             style="width: {{ analytic.completion_rate }}%"
+                             aria-valuenow="{{ analytic.completion_rate }}" 
+                             aria-valuemin="0" aria-valuemax="100">
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <small class="text-muted">Dernière mise à jour : {{ analytic.last_updated|date:"d/m/Y H:i" }}</small>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <a href="{% url 'learning:course_detail' analytic.course.id %}" class="btn btn-sm btn-primary">
+                        <i class="fas fa-eye"></i> Voir le cours
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="alert alert-info">
+                Aucune donnée analytique disponible pour le moment.
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

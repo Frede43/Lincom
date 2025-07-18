@@ -1,0 +1,279 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Modifier le rôle de {{ member.user.get_full_name }} - {{ organization.name }} - Community Lab{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <nav aria-label="breadcrumb" class="mb-4">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a href="{% url 'organizations:organization_list' %}">Organisations</a>
+                </li>
+                <li class="breadcrumb-item">
+                    <a href="{% url 'organizations:organization_detail' organization.id %}">
+                        {{ organization.name }}
+                    </a>
+                </li>
+                <li class="breadcrumb-item">
+                    <a href="{% url 'organizations:member_list' organization.id %}">Membres</a>
+                </li>
+                <li class="breadcrumb-item active">Modifier le rôle</li>
+            </ol>
+        </nav>
+
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-4">
+                    {% if member.user.profile.avatar %}
+                        <img src="{{ member.user.profile.avatar.url }}" 
+                             class="rounded-circle me-3" 
+                             style="width: 64px; height: 64px;" 
+                             alt="{{ member.user.get_full_name }}">
+                    {% endif %}
+                    <div>
+                        <h1 class="card-title h3 mb-1">{{ member.user.get_full_name }}</h1>
+                        <p class="text-muted mb-0">
+                            Membre depuis le {{ member.joined_at|date:"d/m/Y" }}
+                        </p>
+                    </div>
+                </div>
+
+                <div class="alert alert-info mb-4">
+                    <h5 class="alert-heading">
+                        <i class="fas fa-info-circle"></i> Rôles et permissions
+                    </h5>
+                    <p class="mb-0">
+                        Le changement de rôle modifiera les permissions du membre dans l'organisation.
+                        Assurez-vous de bien comprendre les implications avant de procéder.
+                    </p>
+                </div>
+
+                <div class="mb-4">
+                    <h5>Rôle actuel</h5>
+                    <div class="card bg-light">
+                        <div class="card-body">
+                            <span class="badge {% if member.role == 'ADMIN' %}bg-danger{% elif member.role == 'MANAGER' %}bg-warning{% else %}bg-info{% endif %} fs-6">
+                                {{ member.get_role_display }}
+                            </span>
+                            <p class="mt-3 mb-0">
+                                {% if member.role == 'ADMIN' %}
+                                    Les administrateurs ont un accès complet à la gestion de l'organisation, 
+                                    y compris la gestion des membres et des paramètres.
+                                {% elif member.role == 'MANAGER' %}
+                                    Les managers peuvent gérer les projets et les activités, 
+                                    mais n'ont pas accès aux paramètres administratifs.
+                                {% else %}
+                                    Les membres peuvent participer aux activités et projets, 
+                                    mais n'ont pas de droits de gestion.
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <form method="post" class="role-form" novalidate>
+                    {% csrf_token %}
+
+                    <div class="mb-4">
+                        {{ form.role|crispy }}
+                    </div>
+
+                    <div class="mb-4">
+                        {{ form.notes|crispy }}
+                        <small class="text-muted">
+                            Ces notes seront enregistrées dans l'historique des modifications.
+                        </small>
+                    </div>
+
+                    <div class="form-check mb-4">
+                        {{ form.notify_user|crispy }}
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'organizations:member_list' organization.id %}" 
+                           class="btn btn-outline-secondary">
+                            Annuler
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            Mettre à jour le rôle
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title">Aperçu des rôles</h5>
+                <div class="mb-3">
+                    <h6 class="text-danger">Administrateur</h6>
+                    <ul class="list-unstyled ps-3 mb-3">
+                        <li><i class="fas fa-check"></i> Gestion complète de l'organisation</li>
+                        <li><i class="fas fa-check"></i> Gestion des membres</li>
+                        <li><i class="fas fa-check"></i> Configuration des paramètres</li>
+                        <li><i class="fas fa-check"></i> Gestion des projets et activités</li>
+                    </ul>
+
+                    <h6 class="text-warning">Manager</h6>
+                    <ul class="list-unstyled ps-3 mb-3">
+                        <li><i class="fas fa-check"></i> Gestion des projets</li>
+                        <li><i class="fas fa-check"></i> Gestion des activités</li>
+                        <li><i class="fas fa-check"></i> Modération des contenus</li>
+                        <li><i class="fas fa-times"></i> Pas d'accès aux paramètres admin</li>
+                    </ul>
+
+                    <h6 class="text-info">Membre</h6>
+                    <ul class="list-unstyled ps-3">
+                        <li><i class="fas fa-check"></i> Participation aux projets</li>
+                        <li><i class="fas fa-check"></i> Accès aux ressources</li>
+                        <li><i class="fas fa-check"></i> Communication avec l'équipe</li>
+                        <li><i class="fas fa-times"></i> Pas de droits de gestion</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        {% if role_history %}
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Historique des rôles</h5>
+                    <div class="timeline">
+                        {% for history in role_history %}
+                            <div class="timeline-item">
+                                <div class="timeline-marker"></div>
+                                <div class="timeline-content">
+                                    <h6 class="mb-1">
+                                        {{ history.get_role_display }}
+                                    </h6>
+                                    <p class="text-muted mb-1">
+                                        <small>
+                                            {{ history.changed_at|date:"d/m/Y H:i" }} par 
+                                            {{ history.changed_by.get_full_name }}
+                                        </small>
+                                    </p>
+                                    {% if history.notes %}
+                                        <p class="mb-0 small">
+                                            {{ history.notes }}
+                                        </p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+<style>
+    .timeline {
+        position: relative;
+        padding: 1rem 0;
+    }
+
+    .timeline::before {
+        content: '';
+        position: absolute;
+        left: 1rem;
+        top: 0;
+        height: 100%;
+        width: 2px;
+        background: #e9ecef;
+    }
+
+    .timeline-item {
+        position: relative;
+        padding-left: 3rem;
+        padding-bottom: 1.5rem;
+    }
+
+    .timeline-marker {
+        position: absolute;
+        left: 0.35rem;
+        width: 1.3rem;
+        height: 1.3rem;
+        border-radius: 50%;
+        background: #fff;
+        border: 2px solid #6c757d;
+    }
+
+    .timeline-content {
+        background: #f8f9fa;
+        padding: 1rem;
+        border-radius: 0.25rem;
+    }
+
+    .role-form .form-group {
+        margin-bottom: 1rem;
+    }
+
+    .role-form label {
+        font-weight: 500;
+    }
+
+    .role-form .asteriskField {
+        color: #dc3545;
+        margin-left: 2px;
+    }
+
+    .role-form .help-text {
+        font-size: 0.875rem;
+        color: #6c757d;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Form validation
+    const form = document.querySelector('.role-form');
+    form.addEventListener('submit', function(event) {
+        if (!form.checkValidity()) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+        form.classList.add('was-validated');
+    });
+
+    // Role change confirmation
+    const roleSelect = document.querySelector('select[name="role"]');
+    const currentRole = '{{ member.role }}';
+    
+    if (roleSelect) {
+        roleSelect.addEventListener('change', function() {
+            if (this.value !== currentRole) {
+                const confirmed = confirm('Êtes-vous sûr de vouloir modifier le rôle de ce membre ?');
+                if (!confirmed) {
+                    this.value = currentRole;
+                }
+            }
+        });
+    }
+
+    // Character counter for notes
+    const notesInput = document.querySelector('textarea[name="notes"]');
+    if (notesInput) {
+        const counter = document.createElement('small');
+        counter.classList.add('text-muted', 'd-block', 'text-end');
+        notesInput.parentNode.appendChild(counter);
+
+        function updateCounter() {
+            const remaining = 500 - notesInput.value.length;
+            counter.textContent = `${remaining} caractères restants`;
+        }
+
+        notesInput.addEventListener('input', updateCounter);
+        updateCounter();
+    }
+});
+</script>
+{% endblock %}

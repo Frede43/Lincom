@@ -1,0 +1,435 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Tasks & Project Management API Documentation | {{ block.super }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .api-section {
+        margin-bottom: 2rem;
+        padding: 1.5rem;
+        border-radius: 0.5rem;
+        background: #fff;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .endpoint {
+        border-left: 4px solid #3498db;
+        padding: 1rem;
+        margin: 1rem 0;
+        background: #f8f9fa;
+    }
+    .method {
+        display: inline-block;
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.25rem;
+        font-weight: bold;
+        margin-right: 0.5rem;
+    }
+    .get { background: #28a745; color: white; }
+    .post { background: #007bff; color: white; }
+    .put { background: #ffc107; color: black; }
+    .delete { background: #dc3545; color: white; }
+    .patch { background: #6c757d; color: white; }
+    .endpoint-url {
+        font-family: monospace;
+        padding: 0.25rem;
+        background: #e9ecef;
+        border-radius: 0.25rem;
+        cursor: pointer;
+    }
+    .task-note {
+        background: #e8f4f8;
+        border: 1px solid #bee5eb;
+        padding: 1rem;
+        border-radius: 0.25rem;
+        margin-bottom: 1.5rem;
+    }
+    .response-example {
+        background: #272822;
+        color: #f8f8f2;
+        padding: 1rem;
+        border-radius: 0.25rem;
+        margin-top: 1rem;
+        font-family: monospace;
+    }
+    .priority-badge {
+        display: inline-block;
+        padding: 0.2rem 0.5rem;
+        border-radius: 0.25rem;
+        font-size: 0.8rem;
+        margin-right: 0.5rem;
+    }
+    .high { background: #dc3545; color: white; }
+    .medium { background: #ffc107; color: black; }
+    .low { background: #28a745; color: white; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h1 class="mb-4">Tasks & Project Management API Documentation</h1>
+
+    <div class="task-note">
+        <h5><i class="fas fa-tasks"></i> Task Management Features</h5>
+        <p class="mb-0">
+            Priority levels:
+            <span class="priority-badge high">Haute</span>
+            <span class="priority-badge medium">Moyenne</span>
+            <span class="priority-badge low">Basse</span>
+        </p>
+    </div>
+
+    <!-- Task Management -->
+    <div class="api-section">
+        <h2>Task Management</h2>
+
+        <!-- Create Task -->
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <span class="endpoint-url">/api/tasks/</span>
+            <p>Create a new task</p>
+
+            <h6>Request Body:</h6>
+            <div class="response-example">
+                <pre>{
+    "title": "Développer le prototype MVP",
+    "description": "Créer une version initiale du produit",
+    "project_id": "project-123",
+    "assignee_id": "user-456",
+    "due_date": "2024-02-01T00:00:00Z",
+    "priority": "high",
+    "estimated_hours": 40,
+    "tags": ["mvp", "development"],
+    "attachments": [
+        {
+            "file_id": "file-789",
+            "type": "document"
+        }
+    ],
+    "subtasks": [
+        {
+            "title": "Configuration de l'environnement",
+            "assignee_id": "user-789"
+        }
+    ]
+}</pre>
+            </div>
+
+            <h6>Response:</h6>
+            <div class="response-example">
+                <pre>{
+    "id": "task-123",
+    "title": "Développer le prototype MVP",
+    "status": "open",
+    "created_by": {
+        "id": "user-123",
+        "name": "Alice Smith"
+    },
+    "assignee": {
+        "id": "user-456",
+        "name": "Bob Johnson"
+    },
+    "created_at": "2024-01-19T14:00:00Z",
+    "updated_at": "2024-01-19T14:00:00Z"
+}</pre>
+            </div>
+        </div>
+
+        <!-- List Tasks -->
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <span class="endpoint-url">/api/tasks/</span>
+            <p>List tasks</p>
+
+            <h6>Query Parameters:</h6>
+            <table class="table params-table">
+                <thead>
+                    <tr>
+                        <th>Parameter</th>
+                        <th>Type</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>project_id</td>
+                        <td>string</td>
+                        <td>Filter by project</td>
+                    </tr>
+                    <tr>
+                        <td>assignee_id</td>
+                        <td>string</td>
+                        <td>Filter by assignee</td>
+                    </tr>
+                    <tr>
+                        <td>status</td>
+                        <td>string</td>
+                        <td>Filter by status</td>
+                    </tr>
+                    <tr>
+                        <td>priority</td>
+                        <td>string</td>
+                        <td>Filter by priority</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Project Management -->
+    <div class="api-section">
+        <h2>Project Management</h2>
+
+        <!-- Create Project -->
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <span class="endpoint-url">/api/projects/</span>
+            <p>Create a new project</p>
+
+            <h6>Request Body:</h6>
+            <div class="response-example">
+                <pre>{
+    "name": "Plateforme E-commerce",
+    "description": "Développement d'une plateforme e-commerce",
+    "startup_id": "startup-123",
+    "start_date": "2024-01-01T00:00:00Z",
+    "end_date": "2024-06-30T00:00:00Z",
+    "team_members": [
+        {
+            "user_id": "user-123",
+            "role": "project_manager"
+        },
+        {
+            "user_id": "user-456",
+            "role": "developer"
+        }
+    ],
+    "milestones": [
+        {
+            "title": "MVP Launch",
+            "due_date": "2024-03-31T00:00:00Z"
+        }
+    ]
+}</pre>
+            </div>
+        </div>
+
+        <!-- Project Dashboard -->
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <span class="endpoint-url">/api/projects/{project_id}/dashboard/</span>
+            <p>Get project dashboard data</p>
+
+            <h6>Response:</h6>
+            <div class="response-example">
+                <pre>{
+    "project": {
+        "id": "project-123",
+        "name": "Plateforme E-commerce",
+        "progress": 45,  // percentage
+        "status": "on_track"
+    },
+    "tasks": {
+        "total": 50,
+        "completed": 22,
+        "overdue": 3,
+        "by_status": {
+            "open": 20,
+            "in_progress": 8,
+            "completed": 22
+        }
+    },
+    "team": {
+        "total_members": 5,
+        "workload": {
+            "user-123": {
+                "assigned_tasks": 8,
+                "completed_tasks": 3
+            }
+        }
+    },
+    "timeline": {
+        "start_date": "2024-01-01T00:00:00Z",
+        "end_date": "2024-06-30T00:00:00Z",
+        "milestones": [
+            {
+                "title": "MVP Launch",
+                "due_date": "2024-03-31T00:00:00Z",
+                "status": "on_track"
+            }
+        ]
+    }
+}</pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- Time Tracking -->
+    <div class="api-section">
+        <h2>Time Tracking</h2>
+
+        <!-- Log Time -->
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <span class="endpoint-url">/api/tasks/{task_id}/time/</span>
+            <p>Log time spent on a task</p>
+
+            <h6>Request Body:</h6>
+            <div class="response-example">
+                <pre>{
+    "hours": 4.5,
+    "date": "2024-01-19",
+    "description": "Développement de l'interface utilisateur",
+    "activity_type": "development"
+}</pre>
+            </div>
+        </div>
+
+        <!-- Get Time Logs -->
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <span class="endpoint-url">/api/tasks/{task_id}/time/</span>
+            <p>Get time logs for a task</p>
+        </div>
+    </div>
+
+    <!-- Task Dependencies -->
+    <div class="api-section">
+        <h2>Task Dependencies</h2>
+
+        <!-- Add Dependency -->
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <span class="endpoint-url">/api/tasks/{task_id}/dependencies/</span>
+            <p>Add task dependency</p>
+
+            <h6>Request Body:</h6>
+            <div class="response-example">
+                <pre>{
+    "depends_on": "task-456",
+    "type": "blocks",  // blocks, relates_to
+    "description": "Need API endpoints before UI development"
+}</pre>
+            </div>
+        </div>
+
+        <!-- List Dependencies -->
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <span class="endpoint-url">/api/tasks/{task_id}/dependencies/</span>
+            <p>List task dependencies</p>
+        </div>
+    </div>
+
+    <!-- Task Templates -->
+    <div class="api-section">
+        <h2>Task Templates</h2>
+
+        <!-- Create Template -->
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <span class="endpoint-url">/api/tasks/templates/</span>
+            <p>Create a task template</p>
+
+            <h6>Request Body:</h6>
+            <div class="response-example">
+                <pre>{
+    "name": "Sprint Planning",
+    "description": "Template for sprint planning tasks",
+    "checklist": [
+        "Review backlog",
+        "Set sprint goals",
+        "Assign tasks"
+    ],
+    "estimated_hours": 2,
+    "category": "agile"
+}</pre>
+            </div>
+        </div>
+
+        <!-- List Templates -->
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <span class="endpoint-url">/api/tasks/templates/</span>
+            <p>List task templates</p>
+        </div>
+    </div>
+
+    <!-- Task Analytics -->
+    <div class="api-section">
+        <h2>Task Analytics</h2>
+
+        <!-- Get Analytics -->
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <span class="endpoint-url">/api/tasks/analytics/</span>
+            <p>Get task analytics</p>
+
+            <h6>Query Parameters:</h6>
+            <table class="table params-table">
+                <thead>
+                    <tr>
+                        <th>Parameter</th>
+                        <th>Type</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>project_id</td>
+                        <td>string</td>
+                        <td>Filter by project</td>
+                    </tr>
+                    <tr>
+                        <td>date_range</td>
+                        <td>string</td>
+                        <td>Time period to analyze</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h6>Response:</h6>
+            <div class="response-example">
+                <pre>{
+    "completion_rate": 85,  // percentage
+    "average_completion_time": 3.5,  // days
+    "overdue_rate": 15,  // percentage
+    "workload_distribution": {
+        "user-123": {
+            "total_tasks": 25,
+            "completed": 20,
+            "overdue": 2
+        }
+    },
+    "time_tracking": {
+        "total_hours": 450,
+        "by_activity": {
+            "development": 250,
+            "testing": 100,
+            "meetings": 100
+        }
+    }
+}</pre>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Add copy functionality for endpoint URLs
+    document.querySelectorAll('.endpoint-url').forEach(element => {
+        element.addEventListener('click', function() {
+            const text = this.textContent;
+            navigator.clipboard.writeText(text).then(() => {
+                const originalText = this.textContent;
+                this.textContent = 'Copied!';
+                setTimeout(() => {
+                    this.textContent = originalText;
+                }, 1000);
+            });
+        });
+    });
+</script>
+{% endblock %}

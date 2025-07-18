@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+
+{% block title %}{% trans "Devenir mentor" %} | {{ startup.name }} | {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h1 class="h4 mb-0">{% trans "Devenir mentor pour" %} {{ startup.name }}</h1>
+                </div>
+                <div class="card-body">
+                    <div class="mb-4">
+                        <h5>{% trans "À propos de la startup" %}</h5>
+                        <p>{{ startup.description }}</p>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <small class="text-muted">
+                                    <i class="fas fa-industry"></i> {{ startup.industry }}
+                                </small>
+                            </div>
+                            <div class="col-md-6">
+                                <small class="text-muted">
+                                    <i class="fas fa-chart-line"></i> {{ startup.stage }}
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <form method="post" class="mentor-request-form">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label for="message" class="form-label">{% trans "Message de motivation" %}</label>
+                            <textarea name="message" id="message" class="form-control" rows="4" required></textarea>
+                            <div class="form-text">
+                                {% trans "Expliquez pourquoi vous souhaitez devenir mentor pour cette startup et ce que vous pouvez leur apporter." %}
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="expertise_areas" class="form-label">{% trans "Domaines d'expertise" %}</label>
+                            <textarea name="expertise_areas" id="expertise_areas" class="form-control" rows="3" required></textarea>
+                            <div class="form-text">
+                                {% trans "Listez vos domaines d'expertise pertinents pour cette startup." %}
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="availability" class="form-label">{% trans "Disponibilité" %}</label>
+                            <textarea name="availability" id="availability" class="form-control" rows="2" required></textarea>
+                            <div class="form-text">
+                                {% trans "Indiquez votre disponibilité (heures par semaine, créneaux préférés, etc.)." %}
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                {% trans "Envoyer ma demande" %}
+                            </button>
+                            <a href="{% url 'startup_detail' startup.slug %}" class="btn btn-outline-secondary">
+                                {% trans "Annuler" %}
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('.mentor-request-form');
+    
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = {
+            message: document.getElementById('message').value,
+            expertise_areas: document.getElementById('expertise_areas').value,
+            availability: document.getElementById('availability').value
+        };
+        
+        fetch(`/api/startups/{{ startup.id }}/mentor-request/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            },
+            body: JSON.stringify(formData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.request_id) {
+                window.location.href = "{% url 'mentor_request_list' %}";
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert("Une erreur s'est produite lors de l'envoi de la demande.");
+        });
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,125 @@
+{% extends "rest_framework/base.html" %}
+
+{% block title %}
+ComLab API
+{% endblock %}
+
+{% block branding %}
+<a class="navbar-brand" rel="nofollow" href="/">
+    ComLab API
+</a>
+{% endblock %}
+
+{% block style %}
+{{ block.super }}
+<style>
+    :root {
+        --primary-color: #2c3e50;
+        --secondary-color: #3498db;
+        --accent-color: #e74c3c;
+        --background-color: #f8f9fa;
+        --text-color: #2c3e50;
+    }
+
+    /* Navbar styling */
+    .navbar {
+        background-color: var(--primary-color) !important;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .navbar-brand {
+        color: white !important;
+        font-weight: bold;
+        font-size: 1.5rem;
+    }
+
+    /* Content styling */
+    .content {
+        background-color: var(--background-color);
+        padding: 2rem;
+    }
+
+    /* Cards styling */
+    .page-header {
+        background-color: white;
+        padding: 1.5rem;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        margin-bottom: 2rem;
+    }
+
+    /* Buttons styling */
+    .btn-primary {
+        background-color: var(--secondary-color);
+        border-color: var(--secondary-color);
+    }
+
+    .btn-primary:hover {
+        background-color: #2980b9;
+        border-color: #2980b9;
+    }
+
+    /* Form styling */
+    .form-control {
+        border-radius: 4px;
+        border: 1px solid #ddd;
+    }
+
+    .form-control:focus {
+        border-color: var(--secondary-color);
+        box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+    }
+
+    /* Table styling */
+    .table {
+        background-color: white;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    .table thead th {
+        background-color: var(--primary-color);
+        color: white;
+        border-bottom: none;
+    }
+
+    /* Response styling */
+    pre {
+        background-color: white;
+        border-radius: 8px;
+        padding: 1rem;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    /* Pagination styling */
+    .pagination > li > a {
+        color: var(--secondary-color);
+    }
+
+    .pagination > .active > a {
+        background-color: var(--secondary-color);
+        border-color: var(--secondary-color);
+    }
+
+    /* Documentation styling */
+    .description {
+        background-color: white;
+        padding: 1rem;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    /* Responsive design */
+    @media (max-width: 768px) {
+        .content {
+            padding: 1rem;
+        }
+        
+        .page-header {
+            padding: 1rem;
+        }
+    }
+</style>
+{% endblock %}

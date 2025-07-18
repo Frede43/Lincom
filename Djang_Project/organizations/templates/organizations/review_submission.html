@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+
+{% block title %}Évaluer la soumission - {{ submission.startup.name }} - Community Lab{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <h1>Évaluer la soumission</h1>
+            <h4 class="text-muted">{{ submission.startup.name }} - {{ submission.project_call.title }}</h4>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Détails de la soumission</h5>
+                </div>
+                <div class="card-body">
+                    <h6>Proposition</h6>
+                    <p>{{ submission.proposal }}</p>
+                    
+                    <h6>Budget proposé</h6>
+                    <p>{{ submission.budget_proposal }} FCFA</p>
+                    
+                    {% if submission.project %}
+                    <h6>Projet associé</h6>
+                    <p><a href="{% url 'projects:detail' submission.project.pk %}">{{ submission.project.title }}</a></p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Formulaire d'évaluation</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        {% for field in form %}
+                        <div class="mb-3">
+                            <label for="{{ field.id_for_label }}" class="form-label">
+                                {{ field.label }}
+                                {% if field.help_text %}
+                                <small class="text-muted d-block">{{ field.help_text }}</small>
+                                {% endif %}
+                            </label>
+                            {{ field.errors }}
+                            {{ field }}
+                        </div>
+                        {% endfor %}
+                        
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Enregistrer l'évaluation
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Informations sur la startup</h5>
+                </div>
+                <div class="card-body">
+                    <h6>{{ submission.startup.name }}</h6>
+                    <p class="text-muted">{{ submission.startup.tagline }}</p>
+                    
+                    <h6>Secteur d'activité</h6>
+                    <p>{{ submission.startup.industry.name }}</p>
+                    
+                    <h6>Stade de développement</h6>
+                    <p>{{ submission.startup.stage.name }}</p>
+                    
+                    <a href="{% url 'startups:detail' submission.startup.slug %}" class="btn btn-outline-primary btn-sm">
+                        <i class="fas fa-external-link-alt"></i> Voir le profil complet
+                    </a>
+                </div>
+            </div>
+
+            {% if submission.reviews.exists %}
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Autres évaluations</h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group list-group-flush">
+                        {% for review in submission.reviews.all %}
+                        <div class="list-group-item">
+                            <h6 class="mb-1">{{ review.reviewer.get_full_name }}</h6>
+                            <p class="mb-1">Note moyenne : {{ review.total_score|floatformat:1 }}/5</p>
+                            <small class="text-muted">{{ review.created_at|date:"d/m/Y" }}</small>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

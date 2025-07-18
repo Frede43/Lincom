@@ -1,0 +1,65 @@
+{% extends "organizations/base_organizations.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %}S'inscrire à {{ competition.title }} | {{ block.super }}{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'organizations:competition_list' %}">Compétitions</a></li>
+<li class="breadcrumb-item"><a href="{% url 'organizations:competition_detail' competition.pk %}">{{ competition.title }}</a></li>
+<li class="breadcrumb-item active">S'inscrire</li>
+{% endblock %}
+
+{% block organization_content %}
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        <div class="card">
+            <div class="card-body">
+                <h2 class="card-title mb-4">S'inscrire à la compétition</h2>
+                
+                <!-- Informations sur la compétition -->
+                <div class="alert alert-info mb-4">
+                    <h5 class="alert-heading">Informations sur la compétition</h5>
+                    <p class="mb-2"><strong>Titre:</strong> {{ competition.title }}</p>
+                    <p class="mb-2"><strong>Type:</strong> {{ competition.get_type_display }}</p>
+                    <p class="mb-2"><strong>Date de début:</strong> {{ competition.start_date|date:"d F Y H:i" }}</p>
+                    <p class="mb-2"><strong>Date de fin:</strong> {{ competition.end_date|date:"d F Y H:i" }}</p>
+                    <p class="mb-0"><strong>Prix:</strong></p>
+                    <p class="mb-0">{{ competition.prize|linebreaks }}</p>
+                </div>
+
+                <!-- Confirmation -->
+                <div class="alert alert-warning mb-4">
+                    <h5 class="alert-heading">Confirmation</h5>
+                    <p class="mb-0">En vous inscrivant à cette compétition, vous confirmez que :</p>
+                    <ul class="mb-0">
+                        <li>Vous avez lu et compris les règles de la compétition</li>
+                        <li>Votre startup remplit les conditions de participation</li>
+                        <li>Vous vous engagez à participer aux activités prévues</li>
+                        <li>Vous acceptez que les informations de votre startup soient partagées avec les organisateurs</li>
+                    </ul>
+                </div>
+
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <!-- Startup -->
+                    <div class="mb-4">
+                        <h5>Startup</h5>
+                        <p class="mb-0">{{ user.startup.name }}</p>
+                        <small class="text-muted">Vous inscrivez cette startup à la compétition.</small>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            Confirmer l'inscription
+                        </button>
+                        <a href="{% url 'organizations:competition_detail' competition.pk %}" class="btn btn-outline-secondary">
+                            Annuler
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

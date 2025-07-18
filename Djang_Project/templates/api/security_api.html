@@ -1,0 +1,421 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Security & Compliance API Documentation | {{ block.super }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .api-section {
+        margin-bottom: 2rem;
+        padding: 1.5rem;
+        border-radius: 0.5rem;
+        background: #fff;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .endpoint {
+        border-left: 4px solid #3498db;
+        padding: 1rem;
+        margin: 1rem 0;
+        background: #f8f9fa;
+    }
+    .method {
+        display: inline-block;
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.25rem;
+        font-weight: bold;
+        margin-right: 0.5rem;
+    }
+    .get { background: #28a745; color: white; }
+    .post { background: #007bff; color: white; }
+    .put { background: #ffc107; color: black; }
+    .delete { background: #dc3545; color: white; }
+    .patch { background: #6c757d; color: white; }
+    .endpoint-url {
+        font-family: monospace;
+        padding: 0.25rem;
+        background: #e9ecef;
+        border-radius: 0.25rem;
+        cursor: pointer;
+    }
+    .security-note {
+        background: #e8f4f8;
+        border: 1px solid #bee5eb;
+        padding: 1rem;
+        border-radius: 0.25rem;
+        margin-bottom: 1.5rem;
+    }
+    .response-example {
+        background: #272822;
+        color: #f8f8f2;
+        padding: 1rem;
+        border-radius: 0.25rem;
+        margin-top: 1rem;
+        font-family: monospace;
+    }
+    .severity-type {
+        display: inline-block;
+        padding: 0.2rem 0.5rem;
+        border-radius: 0.25rem;
+        font-size: 0.8rem;
+        margin-right: 0.5rem;
+    }
+    .high { background: #dc3545; color: white; }
+    .medium { background: #ffc107; color: black; }
+    .low { background: #28a745; color: white; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h1 class="mb-4">Security & Compliance API Documentation</h1>
+
+    <div class="security-note">
+        <h5><i class="fas fa-shield-alt"></i> Risk Levels</h5>
+        <p class="mb-0">
+            Severity levels:
+            <span class="severity-type high">High</span>
+            <span class="severity-type medium">Medium</span>
+            <span class="severity-type low">Low</span>
+        </p>
+    </div>
+
+    <!-- Authentication Security -->
+    <div class="api-section">
+        <h2>Authentication Security</h2>
+
+        <!-- Configure 2FA -->
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <span class="endpoint-url">/api/security/2fa/configure/</span>
+            <p>Configure two-factor authentication</p>
+
+            <h6>Request Body:</h6>
+            <div class="response-example">
+                <pre>{
+    "type": "totp",  // or "sms"
+    "phone_number": "+257123456789",  // for SMS
+    "backup_codes": true,
+    "enforce": true,
+    "recovery_email": "backup@example.com"
+}</pre>
+            </div>
+
+            <h6>Response:</h6>
+            <div class="response-example">
+                <pre>{
+    "secret": "JBSWY3DPEHPK3PXP",
+    "qr_code": "data:image/png;base64,...",
+    "backup_codes": [
+        "1234-5678",
+        "9012-3456"
+    ],
+    "status": "enabled"
+}</pre>
+            </div>
+        </div>
+
+        <!-- Verify 2FA -->
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <span class="endpoint-url">/api/security/2fa/verify/</span>
+            <p>Verify two-factor authentication code</p>
+
+            <h6>Request Body:</h6>
+            <div class="response-example">
+                <pre>{
+    "code": "123456",
+    "remember_device": true
+}</pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- Access Control -->
+    <div class="api-section">
+        <h2>Access Control</h2>
+
+        <!-- Create Policy -->
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <span class="endpoint-url">/api/security/policies/</span>
+            <p>Create access policy</p>
+
+            <h6>Request Body:</h6>
+            <div class="response-example">
+                <pre>{
+    "name": "Data Access Policy",
+    "description": "Controls access to sensitive data",
+    "rules": [
+        {
+            "resource": "user_data",
+            "actions": ["read", "write"],
+            "conditions": {
+                "roles": ["admin", "data_manager"],
+                "ip_range": ["192.168.1.0/24"],
+                "time_window": {
+                    "start": "09:00",
+                    "end": "17:00"
+                }
+            }
+        }
+    ],
+    "priority": 1,
+    "enabled": true
+}</pre>
+            </div>
+        </div>
+
+        <!-- List Policies -->
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <span class="endpoint-url">/api/security/policies/</span>
+            <p>List access policies</p>
+        </div>
+    </div>
+
+    <!-- Security Audit -->
+    <div class="api-section">
+        <h2>Security Audit</h2>
+
+        <!-- Create Audit Log -->
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <span class="endpoint-url">/api/security/audit/logs/</span>
+            <p>Create security audit log</p>
+
+            <h6>Request Body:</h6>
+            <div class="response-example">
+                <pre>{
+    "event": "data_access",
+    "user_id": "user-123",
+    "resource": "customer_records",
+    "action": "read",
+    "status": "success",
+    "metadata": {
+        "ip_address": "192.168.1.100",
+        "user_agent": "Mozilla/5.0...",
+        "location": "Bujumbura, Burundi"
+    },
+    "severity": "low"
+}</pre>
+            </div>
+        </div>
+
+        <!-- Get Audit Logs -->
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <span class="endpoint-url">/api/security/audit/logs/</span>
+            <p>Get security audit logs</p>
+
+            <h6>Query Parameters:</h6>
+            <table class="table params-table">
+                <thead>
+                    <tr>
+                        <th>Parameter</th>
+                        <th>Type</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>event</td>
+                        <td>string</td>
+                        <td>Filter by event type</td>
+                    </tr>
+                    <tr>
+                        <td>severity</td>
+                        <td>string</td>
+                        <td>Filter by severity</td>
+                    </tr>
+                    <tr>
+                        <td>date_range</td>
+                        <td>string</td>
+                        <td>Filter by date range</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Compliance Management -->
+    <div class="api-section">
+        <h2>Compliance Management</h2>
+
+        <!-- Create Compliance Report -->
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <span class="endpoint-url">/api/security/compliance/reports/</span>
+            <p>Generate compliance report</p>
+
+            <h6>Request Body:</h6>
+            <div class="response-example">
+                <pre>{
+    "type": "gdpr",  // or "hipaa", "pci"
+    "date_range": {
+        "start": "2024-01-01",
+        "end": "2024-01-31"
+    },
+    "include": [
+        "data_access_logs",
+        "security_incidents",
+        "policy_changes"
+    ],
+    "format": "pdf"
+}</pre>
+            </div>
+        </div>
+
+        <!-- List Compliance Reports -->
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <span class="endpoint-url">/api/security/compliance/reports/</span>
+            <p>List compliance reports</p>
+        </div>
+    </div>
+
+    <!-- Threat Detection -->
+    <div class="api-section">
+        <h2>Threat Detection</h2>
+
+        <!-- Report Threat -->
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <span class="endpoint-url">/api/security/threats/</span>
+            <p>Report security threat</p>
+
+            <h6>Request Body:</h6>
+            <div class="response-example">
+                <pre>{
+    "type": "suspicious_activity",
+    "description": "Multiple failed login attempts",
+    "source": {
+        "ip": "192.168.1.100",
+        "user_agent": "Mozilla/5.0...",
+        "location": "Unknown"
+    },
+    "target": {
+        "user_id": "user-123",
+        "resource": "login_endpoint"
+    },
+    "severity": "high",
+    "evidence": {
+        "log_entries": ["..."],
+        "timestamps": ["2024-01-19T14:00:00Z"]
+    }
+}</pre>
+            </div>
+        </div>
+
+        <!-- Get Threats -->
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <span class="endpoint-url">/api/security/threats/</span>
+            <p>List security threats</p>
+        </div>
+    </div>
+
+    <!-- Security Settings -->
+    <div class="api-section">
+        <h2>Security Settings</h2>
+
+        <!-- Update Settings -->
+        <div class="endpoint">
+            <span class="method patch">PATCH</span>
+            <span class="endpoint-url">/api/security/settings/</span>
+            <p>Update security settings</p>
+
+            <h6>Request Body:</h6>
+            <div class="response-example">
+                <pre>{
+    "password_policy": {
+        "min_length": 12,
+        "require_uppercase": true,
+        "require_numbers": true,
+        "require_special": true,
+        "max_age_days": 90
+    },
+    "session_policy": {
+        "max_duration": 3600,
+        "idle_timeout": 900,
+        "max_concurrent": 3
+    },
+    "ip_policy": {
+        "allowed_ips": ["192.168.1.0/24"],
+        "blocked_ips": ["10.0.0.0/8"],
+        "rate_limit": {
+            "requests": 100,
+            "period": 60
+        }
+    },
+    "encryption": {
+        "algorithm": "AES-256-GCM",
+        "key_rotation": 30  // days
+    }
+}</pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- Security Analytics -->
+    <div class="api-section">
+        <h2>Security Analytics</h2>
+
+        <!-- Get Analytics -->
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <span class="endpoint-url">/api/security/analytics/</span>
+            <p>Get security analytics</p>
+
+            <h6>Response:</h6>
+            <div class="response-example">
+                <pre>{
+    "overview": {
+        "total_incidents": 25,
+        "resolved_incidents": 20,
+        "average_resolution_time": 3600  // seconds
+    },
+    "by_severity": {
+        "high": 5,
+        "medium": 10,
+        "low": 10
+    },
+    "top_threats": [
+        {
+            "type": "brute_force",
+            "count": 15,
+            "success_rate": 0
+        }
+    ],
+    "compliance": {
+        "gdpr_compliance": 98,
+        "security_score": 85
+    },
+    "authentication": {
+        "2fa_adoption": 75,  // percentage
+        "failed_logins": 50,
+        "password_resets": 10
+    }
+}</pre>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Add copy functionality for endpoint URLs
+    document.querySelectorAll('.endpoint-url').forEach(element => {
+        element.addEventListener('click', function() {
+            const text = this.textContent;
+            navigator.clipboard.writeText(text).then(() => {
+                const originalText = this.textContent;
+                this.textContent = 'Copied!';
+                setTimeout(() => {
+                    this.textContent = originalText;
+                }, 1000);
+            });
+        });
+    });
+</script>
+{% endblock %}

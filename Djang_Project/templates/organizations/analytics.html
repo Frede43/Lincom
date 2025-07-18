@@ -1,0 +1,367 @@
+{% extends "organizations/base_organizations.html" %}
+
+{% block title %}Analytiques | {{ block.super }}{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+    .chart-container {
+        position: relative;
+        height: 400px;
+        margin-bottom: 2rem;
+    }
+    .metric-card {
+        transition: transform 0.2s;
+    }
+    .metric-card:hover {
+        transform: translateY(-5px);
+    }
+    .trend-indicator {
+        font-size: 0.9rem;
+        margin-left: 0.5rem;
+    }
+    .trend-up {
+        color: #28a745;
+    }
+    .trend-down {
+        color: #dc3545;
+    }
+    .filter-section {
+        background: #f8f9fa;
+        border-radius: 0.5rem;
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">Analytiques</li>
+{% endblock %}
+
+{% block organization_content %}
+<!-- En-tête -->
+<div class="row mb-4">
+    <div class="col">
+        <h1>Analytiques</h1>
+    </div>
+</div>
+
+<!-- Filtres -->
+<div class="filter-section">
+    <form method="get" class="row g-3">
+        <div class="col-md-3">
+            <label for="date_range" class="form-label">Période</label>
+            <select name="date_range" id="date_range" class="form-select">
+                <option value="7" {% if date_range == '7' %}selected{% endif %}>7 derniers jours</option>
+                <option value="30" {% if date_range == '30' %}selected{% endif %}>30 derniers jours</option>
+                <option value="90" {% if date_range == '90' %}selected{% endif %}>90 derniers jours</option>
+                <option value="365" {% if date_range == '365' %}selected{% endif %}>12 derniers mois</option>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label for="project_type" class="form-label">Type de projet</label>
+            <select name="project_type" id="project_type" class="form-select">
+                <option value="">Tous</option>
+                <option value="project_call" {% if project_type == 'project_call' %}selected{% endif %}>Appels à projets</option>
+                <option value="competition" {% if project_type == 'competition' %}selected{% endif %}>Compétitions</option>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label for="status" class="form-label">Statut</label>
+            <select name="status" id="status" class="form-select">
+                <option value="">Tous</option>
+                <option value="active" {% if status == 'active' %}selected{% endif %}>Actifs</option>
+                <option value="completed" {% if status == 'completed' %}selected{% endif %}>Terminés</option>
+            </select>
+        </div>
+        <div class="col-md-3 d-flex align-items-end">
+            <button type="submit" class="btn btn-primary w-100">Appliquer les filtres</button>
+        </div>
+    </form>
+</div>
+
+<!-- KPIs -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card metric-card">
+            <div class="card-body">
+                <h6 class="card-subtitle mb-2 text-muted">Taux de participation</h6>
+                <h2 class="card-title mb-0">
+                    {{ participation_rate }}%
+                    {% if participation_trend > 0 %}
+                    <span class="trend-indicator trend-up">
+                        <i class="fas fa-arrow-up"></i> {{ participation_trend }}%
+                    </span>
+                    {% else %}
+                    <span class="trend-indicator trend-down">
+                        <i class="fas fa-arrow-down"></i> {{ participation_trend|abs }}%
+                    </span>
+                    {% endif %}
+                </h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card metric-card">
+            <div class="card-body">
+                <h6 class="card-subtitle mb-2 text-muted">Taux d'acceptation</h6>
+                <h2 class="card-title mb-0">
+                    {{ acceptance_rate }}%
+                    {% if acceptance_trend > 0 %}
+                    <span class="trend-indicator trend-up">
+                        <i class="fas fa-arrow-up"></i> {{ acceptance_trend }}%
+                    </span>
+                    {% else %}
+                    <span class="trend-indicator trend-down">
+                        <i class="fas fa-arrow-down"></i> {{ acceptance_trend|abs }}%
+                    </span>
+                    {% endif %}
+                </h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card metric-card">
+            <div class="card-body">
+                <h6 class="card-subtitle mb-2 text-muted">Score moyen</h6>
+                <h2 class="card-title mb-0">
+                    {{ average_score }}/5
+                    {% if score_trend > 0 %}
+                    <span class="trend-indicator trend-up">
+                        <i class="fas fa-arrow-up"></i> {{ score_trend }}
+                    </span>
+                    {% else %}
+                    <span class="trend-indicator trend-down">
+                        <i class="fas fa-arrow-down"></i> {{ score_trend|abs }}
+                    </span>
+                    {% endif %}
+                </h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card metric-card">
+            <div class="card-body">
+                <h6 class="card-subtitle mb-2 text-muted">Budget moyen</h6>
+                <h2 class="card-title mb-0">
+                    {{ average_budget }} FCFA
+                    {% if budget_trend > 0 %}
+                    <span class="trend-indicator trend-up">
+                        <i class="fas fa-arrow-up"></i> {{ budget_trend }}%
+                    </span>
+                    {% else %}
+                    <span class="trend-indicator trend-down">
+                        <i class="fas fa-arrow-down"></i> {{ budget_trend|abs }}%
+                    </span>
+                    {% endif %}
+                </h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Graphiques -->
+<div class="row">
+    <!-- Évolution des soumissions -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Évolution des soumissions</h5>
+                <div class="chart-container">
+                    <canvas id="submissionsChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Distribution des scores -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Distribution des scores</h5>
+                <div class="chart-container">
+                    <canvas id="scoresChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <!-- Répartition par type -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Répartition par type</h5>
+                <div class="chart-container">
+                    <canvas id="typeChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Budgets proposés -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Distribution des budgets proposés</h5>
+                <div class="chart-container">
+                    <canvas id="budgetChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tableau détaillé -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Détails des projets</h5>
+                
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Titre</th>
+                                <th>Type</th>
+                                <th>Date</th>
+                                <th>Participants</th>
+                                <th>Taux de succès</th>
+                                <th>Budget moyen</th>
+                                <th>Score moyen</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for project in projects %}
+                            <tr>
+                                <td>{{ project.title }}</td>
+                                <td>{{ project.get_type_display }}</td>
+                                <td>{{ project.start_date|date:"d M Y" }}</td>
+                                <td>{{ project.participant_count }}</td>
+                                <td>{{ project.success_rate }}%</td>
+                                <td>{{ project.average_budget }} FCFA</td>
+                                <td>{{ project.average_score }}/5</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Graphique d'évolution des soumissions
+    const submissionsCtx = document.getElementById('submissionsChart').getContext('2d');
+    new Chart(submissionsCtx, {
+        type: 'line',
+        data: {
+            labels: {{ submission_dates|safe }},
+            datasets: [{
+                label: 'Soumissions',
+                data: {{ submission_counts|safe }},
+                borderColor: 'rgb(54, 162, 235)',
+                tension: 0.1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
+                    }
+                }
+            }
+        }
+    });
+
+    // Graphique de distribution des scores
+    const scoresCtx = document.getElementById('scoresChart').getContext('2d');
+    new Chart(scoresCtx, {
+        type: 'bar',
+        data: {
+            labels: ['1', '2', '3', '4', '5'],
+            datasets: [{
+                label: 'Nombre de projets',
+                data: {{ score_distribution|safe }},
+                backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                borderColor: 'rgb(54, 162, 235)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
+                    }
+                }
+            }
+        }
+    });
+
+    // Graphique de répartition par type
+    const typeCtx = document.getElementById('typeChart').getContext('2d');
+    new Chart(typeCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Pitch', 'Hackathon', 'Challenge'],
+            datasets: [{
+                data: {{ type_distribution|safe }},
+                backgroundColor: [
+                    'rgb(255, 99, 132)',
+                    'rgb(54, 162, 235)',
+                    'rgb(255, 205, 86)'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+
+    // Graphique des budgets
+    const budgetCtx = document.getElementById('budgetChart').getContext('2d');
+    new Chart(budgetCtx, {
+        type: 'bar',
+        data: {
+            labels: {{ budget_ranges|safe }},
+            datasets: [{
+                label: 'Nombre de projets',
+                data: {{ budget_distribution|safe }},
+                backgroundColor: 'rgba(75, 192, 192, 0.5)',
+                borderColor: 'rgb(75, 192, 192)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
+                    }
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,232 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ project_call.title }} - Community Lab{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a href="{% url 'organizations:project_call_list' %}">Appels à projets</a>
+                </li>
+                <li class="breadcrumb-item active">{{ project_call.title }}</li>
+            </ol>
+        </nav>
+
+        <div class="card mb-4">
+            {% if project_call.image %}
+                <img src="{{ project_call.image.url }}" class="card-img-top" alt="{{ project_call.title }}">
+            {% endif %}
+            <div class="card-body">
+                <h1 class="card-title">{{ project_call.title }}</h1>
+                <div class="mb-3">
+                    <span class="badge {% if project_call.status == 'OPEN' %}bg-success{% elif project_call.status == 'CLOSED' %}bg-danger{% else %}bg-secondary{% endif %}">
+                        {{ project_call.get_status_display }}
+                    </span>
+                    {% if project_call.funding_amount %}
+                        <span class="badge bg-primary">
+                            Financement : {{ project_call.funding_amount }} BIF
+                        </span>
+                    {% endif %}
+                </div>
+
+                <div class="mb-4">
+                    <h5>Informations clés</h5>
+                    <ul class="list-unstyled">
+                        <li class="mb-2">
+                            <i class="fas fa-building"></i>
+                            <strong>Organisation :</strong> 
+                            <a href="{% url 'organizations:organization_detail' project_call.organization.id %}">
+                                {{ project_call.organization.name }}
+                            </a>
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-calendar-alt"></i>
+                            <strong>Date de publication :</strong> 
+                            {{ project_call.created_at|date:"d/m/Y" }}
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-clock"></i>
+                            <strong>Date limite :</strong> 
+                            {{ project_call.deadline|date:"d/m/Y" }}
+                        </li>
+                        <li>
+                            <i class="fas fa-file-alt"></i>
+                            <strong>Soumissions :</strong> 
+                            {{ project_call.submissions.count }} projet(s)
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="mb-4">
+                    <h5>Description</h5>
+                    {{ project_call.description|linebreaks }}
+                </div>
+
+                <div class="mb-4">
+                    <h5>Critères d'éligibilité</h5>
+                    {{ project_call.eligibility_criteria|linebreaks }}
+                </div>
+
+                <div class="mb-4">
+                    <h5>Processus d'évaluation</h5>
+                    {{ project_call.evaluation_process|linebreaks }}
+                </div>
+
+                {% if project_call.resources.exists %}
+                    <div class="mb-4">
+                        <h5>Documents et ressources</h5>
+                        <ul class="list-group">
+                            {% for resource in project_call.resources.all %}
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <i class="fas fa-file-alt"></i>
+                                        {{ resource.title }}
+                                    </div>
+                                    {% if resource.file %}
+                                        <a href="{{ resource.file.url }}" class="btn btn-sm btn-outline-primary" 
+                                           download>
+                                            <i class="fas fa-download"></i> Télécharger
+                                        </a>
+                                    {% endif %}
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                {% endif %}
+
+                {% if user.is_organization_member and user.organization == project_call.organization %}
+                    <div class="mb-4">
+                        <h5>Soumissions reçues</h5>
+                        {% if project_call.submissions.exists %}
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Startup</th>
+                                            <th>Date de soumission</th>
+                                            <th>Statut</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for submission in project_call.submissions.all %}
+                                            <tr>
+                                                <td>{{ submission.startup.name }}</td>
+                                                <td>{{ submission.submitted_at|date:"d/m/Y" }}</td>
+                                                <td>
+                                                    <span class="badge {% if submission.status == 'ACCEPTED' %}bg-success{% elif submission.status == 'REJECTED' %}bg-danger{% else %}bg-secondary{% endif %}">
+                                                        {{ submission.get_status_display }}
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <a href="{% url 'organizations:project_submission_detail' submission.id %}" 
+                                                       class="btn btn-sm btn-outline-primary">
+                                                        Voir détails
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <p class="text-muted">Aucune soumission reçue pour le moment.</p>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-body">
+                {% if project_call.status == 'OPEN' %}
+                    {% if user.is_authenticated %}
+                        {% if user.is_startup_member %}
+                            {% if not user.startup in project_call.submissions.all %}
+                                <a href="{% url 'organizations:project_submission_create' project_call.id %}" 
+                                   class="btn btn-primary w-100 mb-3">
+                                    Soumettre un projet
+                                </a>
+                                <p class="small text-muted mb-0">
+                                    Date limite de soumission : {{ project_call.deadline|date:"d/m/Y" }}
+                                </p>
+                            {% else %}
+                                <div class="alert alert-success mb-0">
+                                    <i class="fas fa-check-circle"></i>
+                                    Vous avez déjà soumis un projet pour cet appel
+                                </div>
+                            {% endif %}
+                        {% else %}
+                            <div class="alert alert-info mb-0">
+                                <i class="fas fa-info-circle"></i>
+                                Seules les startups peuvent soumettre des projets
+                            </div>
+                        {% endif %}
+                    {% else %}
+                        <a href="{% url 'accounts:login' %}?next={{ request.path }}" 
+                           class="btn btn-primary w-100">
+                            Se connecter pour soumettre un projet
+                        </a>
+                    {% endif %}
+                {% else %}
+                    <div class="alert alert-warning mb-0">
+                        <i class="fas fa-exclamation-circle"></i>
+                        Les soumissions sont actuellement fermées
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title">À propos de l'organisation</h5>
+                <div class="d-flex align-items-center mb-3">
+                    {% if project_call.organization.logo %}
+                        <img src="{{ project_call.organization.logo.url }}" 
+                             class="rounded-circle me-3" width="64" height="64"
+                             alt="{{ project_call.organization.name }}">
+                    {% endif %}
+                    <div>
+                        <h6 class="mb-0">{{ project_call.organization.name }}</h6>
+                        <p class="text-muted mb-0">{{ project_call.organization.sector }}</p>
+                    </div>
+                </div>
+                <p>{{ project_call.organization.description|truncatewords:50 }}</p>
+                <a href="{% url 'organizations:organization_detail' project_call.organization.id %}" 
+                   class="btn btn-outline-primary btn-sm">
+                    Voir le profil
+                </a>
+            </div>
+        </div>
+
+        {% if similar_calls %}
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Appels à projets similaires</h5>
+                    <div class="list-group list-group-flush">
+                        {% for similar in similar_calls %}
+                            <a href="{% url 'organizations:project_call_detail' similar.id %}" 
+                               class="list-group-item list-group-item-action">
+                                <h6 class="mb-1">{{ similar.title }}</h6>
+                                <p class="mb-1 text-muted small">{{ similar.description|truncatewords:10 }}</p>
+                                <small>
+                                    <i class="fas fa-calendar-alt"></i>
+                                    Date limite : {{ similar.deadline|date:"d/m/Y" }}
+                                </small>
+                            </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+{% endblock %}

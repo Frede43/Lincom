@@ -1,0 +1,176 @@
+{% extends "organizations/base_organizations.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %}{% if form.instance.pk %}Modifier{% else %}Créer{% endif %} une Compétition | {{ block.super }}{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'organizations:competition_list' %}">Compétitions</a></li>
+{% if form.instance.pk %}
+<li class="breadcrumb-item"><a href="{% url 'organizations:competition_detail' form.instance.pk %}">{{ form.instance.title }}</a></li>
+<li class="breadcrumb-item active">Modifier</li>
+{% else %}
+<li class="breadcrumb-item active">Créer</li>
+{% endif %}
+{% endblock %}
+
+{% block organization_content %}
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        <div class="card">
+            <div class="card-body">
+                <h2 class="card-title mb-4">
+                    {% if form.instance.pk %}
+                    Modifier la compétition
+                    {% else %}
+                    Créer une nouvelle compétition
+                    {% endif %}
+                </h2>
+
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <!-- Informations générales -->
+                    <div class="mb-4">
+                        <h5>Informations générales</h5>
+                        {{ form.title|as_crispy_field }}
+                        {{ form.description|as_crispy_field }}
+                        {{ form.type|as_crispy_field }}
+                    </div>
+
+                    <!-- Dates et participants -->
+                    <div class="mb-4">
+                        <h5>Dates et participants</h5>
+                        <div class="row">
+                            <div class="col-md-6">
+                                {{ form.start_date|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.end_date|as_crispy_field }}
+                            </div>
+                        </div>
+                        {{ form.max_participants|as_crispy_field }}
+                    </div>
+
+                    <!-- Prix et statut -->
+                    <div class="mb-4">
+                        <h5>Prix et statut</h5>
+                        {{ form.prize|as_crispy_field }}
+                        {{ form.status|as_crispy_field }}
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <a href="{% if form.instance.pk %}{% url 'organizations:competition_detail' form.instance.pk %}{% else %}{% url 'organizations:competition_list' %}{% endif %}" class="btn btn-outline-secondary">
+                            Annuler
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            {% if form.instance.pk %}
+                            Enregistrer les modifications
+                            {% else %}
+                            Créer la compétition
+                            {% endif %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Guide -->
+        <div class="card mt-4">
+            <div class="card-body">
+                <h5 class="card-title">Guide de création d'une compétition</h5>
+                
+                <div class="accordion" id="guideAccordion">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#titleGuide">
+                                Titre et description
+                            </button>
+                        </h2>
+                        <div id="titleGuide" class="accordion-collapse collapse" data-bs-parent="#guideAccordion">
+                            <div class="accordion-body">
+                                <ul>
+                                    <li>Choisissez un titre accrocheur et mémorable</li>
+                                    <li>La description doit expliquer le concept et les objectifs</li>
+                                    <li>Précisez ce qui rend votre compétition unique</li>
+                                    <li>Détaillez les avantages pour les participants</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#typeGuide">
+                                Type de compétition
+                            </button>
+                        </h2>
+                        <div id="typeGuide" class="accordion-collapse collapse" data-bs-parent="#guideAccordion">
+                            <div class="accordion-body">
+                                <ul>
+                                    <li><strong>Pitch:</strong> Présentation courte des projets devant un jury</li>
+                                    <li><strong>Hackathon:</strong> Événement intensif de développement sur une courte période</li>
+                                    <li><strong>Challenge:</strong> Défi spécifique à résoudre sur une période plus longue</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#prizeGuide">
+                                Prix
+                            </button>
+                        </h2>
+                        <div id="prizeGuide" class="accordion-collapse collapse" data-bs-parent="#guideAccordion">
+                            <div class="accordion-body">
+                                <ul>
+                                    <li>Détaillez tous les prix et récompenses</li>
+                                    <li>Incluez les prix en nature (mentorat, services, etc.)</li>
+                                    <li>Précisez les conditions d'attribution</li>
+                                    <li>Mentionnez les partenaires qui offrent les prix</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#participantsGuide">
+                                Participants
+                            </button>
+                        </h2>
+                        <div id="participantsGuide" class="accordion-collapse collapse" data-bs-parent="#guideAccordion">
+                            <div class="accordion-body">
+                                <ul>
+                                    <li>Fixez un nombre maximum réaliste de participants</li>
+                                    <li>Tenez compte de vos ressources et capacités</li>
+                                    <li>Prévoyez une marge pour les désistements</li>
+                                    <li>Considérez la logistique nécessaire</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#datesGuide">
+                                Dates importantes
+                            </button>
+                        </h2>
+                        <div id="datesGuide" class="accordion-collapse collapse" data-bs-parent="#guideAccordion">
+                            <div class="accordion-body">
+                                <ul>
+                                    <li>Prévoyez suffisamment de temps pour la promotion</li>
+                                    <li>Tenez compte des jours fériés et événements concurrents</li>
+                                    <li>Laissez du temps pour la préparation des participants</li>
+                                    <li>Incluez les dates des différentes phases si nécessaire</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

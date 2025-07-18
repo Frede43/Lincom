@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Événements{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Événements</h1>
+        {% if user.is_authenticated %}
+        <a href="{% url 'events:event-create' %}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Créer un événement
+        </a>
+        {% endif %}
+    </div>
+
+    <!-- Filtres -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-3">
+                    <label for="category" class="form-label">Catégorie</label>
+                    <select name="category" id="category" class="form-select">
+                        <option value="">Toutes les catégories</option>
+                        {% for category in categories %}
+                        <option value="{{ category.0 }}" {% if request.GET.category == category.0 %}selected{% endif %}>
+                            {{ category.1 }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="is_virtual" class="form-label">Type d'événement</label>
+                    <select name="is_virtual" id="is_virtual" class="form-select">
+                        <option value="">Tous les types</option>
+                        <option value="true" {% if request.GET.is_virtual == 'true' %}selected{% endif %}>Virtuel</option>
+                        <option value="false" {% if request.GET.is_virtual == 'false' %}selected{% endif %}>Présentiel</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="is_past" class="form-label">Période</label>
+                    <select name="is_past" id="is_past" class="form-select">
+                        <option value="false" {% if request.GET.is_past == 'false' %}selected{% endif %}>À venir</option>
+                        <option value="true" {% if request.GET.is_past == 'true' %}selected{% endif %}>Passés</option>
+                    </select>
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">Filtrer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Liste des événements -->
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+        {% for event in events %}
+        <div class="col">
+            <div class="card h-100">
+                {% if event.image %}
+                <img src="{{ event.image.url }}" class="card-img-top" alt="{{ event.title }}">
+                {% else %}
+                <img src="{% static 'events/default-event.jpg' %}" class="card-img-top" alt="Default event image">
+                {% endif %}
+                <div class="card-body">
+                    <h5 class="card-title">{{ event.title }}</h5>
+                    <p class="card-text text-muted">
+                        <i class="fas fa-calendar"></i> {{ event.start_date|date:"d/m/Y H:i" }}
+                        {% if event.is_virtual %}
+                        <span class="badge bg-info ms-2"><i class="fas fa-video"></i> Virtuel</span>
+                        {% else %}
+                        <span class="badge bg-success ms-2"><i class="fas fa-map-marker-alt"></i> {{ event.location }}</span>
+                        {% endif %}
+                    </p>
+                    <p class="card-text">{{ event.description|truncatewords:30 }}</p>
+                </div>
+                <div class="card-footer bg-transparent">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <small class="text-muted">
+                            <i class="fas fa-users"></i> {{ event.registrations.count }}/{{ event.max_participants }}
+                        </small>
+                        <a href="{% url 'events:event-detail' event.id %}" class="btn btn-outline-primary btn-sm">
+                            Voir plus
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="alert alert-info" role="alert">
+                Aucun événement trouvé.
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if is_paginated %}
+    <nav aria-label="Page navigation" class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}" aria-label="Previous">
+                    <span aria-hidden="true">&laquo;</span>
+                </a>
+            </li>
+            {% endif %}
+
+            {% for num in page_obj.paginator.page_range %}
+            <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+            </li>
+            {% endfor %}
+
+            {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}" aria-label="Next">
+                    <span aria-hidden="true">&raquo;</span>
+                </a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+{% endblock %}

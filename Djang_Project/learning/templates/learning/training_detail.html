@@ -1,0 +1,208 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ training.title }} - Community Lab{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'learning:training_list' %}">Formations</a></li>
+                <li class="breadcrumb-item active">{{ training.title }}</li>
+            </ol>
+        </nav>
+
+        <div class="card mb-4">
+            {% if training.image %}
+                <img src="{{ training.image.url }}" class="card-img-top" alt="{{ training.title }}">
+            {% endif %}
+            <div class="card-body">
+                <h1 class="card-title">{{ training.title }}</h1>
+                <div class="mb-3">
+                    <span class="badge bg-primary">{{ training.get_status_display }}</span>
+                    <span class="badge bg-secondary">{{ training.category.name }}</span>
+                </div>
+                
+                <div class="mb-4">
+                    <h5>Informations principales</h5>
+                    <ul class="list-unstyled">
+                        <li class="mb-2">
+                            <i class="fas fa-calendar-alt"></i> 
+                            <strong>Période :</strong> Du {{ training.start_date|date:"d/m/Y" }} au {{ training.end_date|date:"d/m/Y" }}
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-clock"></i>
+                            <strong>Horaires :</strong> {{ training.schedule }}
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <strong>Lieu :</strong> {{ training.location }}
+                        </li>
+                        <li>
+                            <i class="fas fa-users"></i>
+                            <strong>Places :</strong> {{ training.participants.count }}/{{ training.max_participants }} participants
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="mb-4">
+                    <h5>Description</h5>
+                    <p>{{ training.description }}</p>
+                </div>
+
+                <div class="mb-4">
+                    <h5>Prérequis</h5>
+                    <ul>
+                        {% for prerequisite in training.prerequisites.all %}
+                            <li>{{ prerequisite.description }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+
+                <div class="mb-4">
+                    <h5>Programme</h5>
+                    <div class="accordion" id="trainingProgram">
+                        {% for session in training.sessions.all %}
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="heading{{ session.id }}">
+                                    <button class="accordion-button {% if not forloop.first %}collapsed{% endif %}" 
+                                            type="button" data-bs-toggle="collapse" 
+                                            data-bs-target="#collapse{{ session.id }}">
+                                        Session {{ forloop.counter }} - {{ session.title }}
+                                    </button>
+                                </h2>
+                                <div id="collapse{{ session.id }}" 
+                                     class="accordion-collapse collapse {% if forloop.first %}show{% endif %}"
+                                     data-bs-parent="#trainingProgram">
+                                    <div class="accordion-body">
+                                        <p>{{ session.description }}</p>
+                                        <p class="mb-0">
+                                            <i class="fas fa-clock"></i> {{ session.duration }} heures
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                {% if training.resources.exists %}
+                    <div class="mb-4">
+                        <h5>Ressources</h5>
+                        <ul class="list-group">
+                            {% for resource in training.resources.all %}
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <i class="fas fa-file-alt"></i>
+                                        {{ resource.title }}
+                                    </div>
+                                    {% if resource.file %}
+                                        <a href="{{ resource.file.url }}" class="btn btn-sm btn-outline-primary" 
+                                           download>
+                                            <i class="fas fa-download"></i> Télécharger
+                                        </a>
+                                    {% endif %}
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if user in training.participants.all %}
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5>Votre participation</h5>
+                    <p class="text-muted">
+                        Inscrit depuis le {{ training.registrations.get_registration_date|date:"d/m/Y" }}
+                    </p>
+                    {% if training.status == 'ONGOING' %}
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i>
+                            La formation est en cours. N'oubliez pas les prochaines sessions !
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title">À propos du formateur</h5>
+                <div class="d-flex align-items-center mb-3">
+                    {% if training.mentor.profile.avatar %}
+                        <img src="{{ training.mentor.profile.avatar.url }}" class="rounded-circle me-3" 
+                             width="64" height="64" alt="{{ training.mentor.get_full_name }}">
+                    {% endif %}
+                    <div>
+                        <h6 class="mb-0">{{ training.mentor.get_full_name }}</h6>
+                        <p class="text-muted mb-0">{{ training.mentor.profile.title }}</p>
+                    </div>
+                </div>
+                <p>{{ training.mentor.profile.bio|truncatewords:50 }}</p>
+                <a href="{% url 'accounts:profile_detail' training.mentor.username %}" 
+                   class="btn btn-outline-primary btn-sm">
+                    Voir le profil
+                </a>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-body">
+                {% if training.is_registration_open %}
+                    {% if user.is_authenticated %}
+                        {% if user not in training.participants.all %}
+                            <form method="post" action="{% url 'learning:training_register' training.id %}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-primary w-100">S'inscrire à la formation</button>
+                            </form>
+                        {% else %}
+                            <div class="alert alert-success mb-0">
+                                <i class="fas fa-check-circle"></i>
+                                Vous êtes inscrit à cette formation
+                            </div>
+                        {% endif %}
+                    {% else %}
+                        <a href="{% url 'accounts:login' %}?next={{ request.path }}" class="btn btn-primary w-100">
+                            Se connecter pour s'inscrire
+                        </a>
+                    {% endif %}
+                {% else %}
+                    <div class="alert alert-warning mb-0">
+                        <i class="fas fa-exclamation-circle"></i>
+                        Les inscriptions sont actuellement fermées
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if similar_trainings %}
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Formations similaires</h5>
+                    <div class="list-group list-group-flush">
+                        {% for similar in similar_trainings %}
+                            <a href="{% url 'learning:training_detail' similar.id %}" 
+                               class="list-group-item list-group-item-action">
+                                <h6 class="mb-1">{{ similar.title }}</h6>
+                                <p class="mb-1 text-muted small">{{ similar.description|truncatewords:10 }}</p>
+                                <small>
+                                    <i class="fas fa-calendar-alt"></i> 
+                                    {{ similar.start_date|date:"d/m/Y" }}
+                                </small>
+                            </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+{% endblock %}

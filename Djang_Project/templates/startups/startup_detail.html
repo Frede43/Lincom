@@ -1,0 +1,257 @@
+{% extends "startups/base_startups.html" %}
+
+{% block title %}{{ startup.name }} | {{ block.super }}{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'startups:startup_list' %}">Startups</a></li>
+<li class="breadcrumb-item active">{{ startup.name }}</li>
+{% endblock %}
+
+{% block startup_content %}
+<div class="row">
+    <!-- En-tête de la startup -->
+    <div class="col-md-12 mb-4">
+        <div class="card">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        {% if startup.logo %}
+                        <img src="{{ startup.logo.url }}" class="img-fluid rounded" alt="{{ startup.name }}">
+                        {% else %}
+                        <div class="bg-light rounded d-flex align-items-center justify-content-center" style="height: 200px;">
+                            <i class="fas fa-building fa-3x text-muted"></i>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-9">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h1 class="mb-2">{{ startup.name }}</h1>
+                                <p class="lead text-muted">{{ startup.tagline }}</p>
+                            </div>
+                            {% if user == startup.founder %}
+                            <div>
+                                <a href="{% url 'startups:startup_update' startup.slug %}" class="btn btn-outline-primary me-2">
+                                    <i class="fas fa-edit"></i> Modifier
+                                </a>
+                                <a href="{% url 'startups:startup_delete' startup.slug %}" class="btn btn-outline-danger">
+                                    <i class="fas fa-trash"></i> Supprimer
+                                </a>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="row mt-4">
+                            <div class="col-md-4">
+                                <h6><i class="fas fa-industry"></i> Industrie</h6>
+                                <p>{{ startup.industry.name }}</p>
+                            </div>
+                            <div class="col-md-4">
+                                <h6><i class="fas fa-chart-line"></i> Stade</h6>
+                                <p>{{ startup.stage.name }}</p>
+                            </div>
+                            <div class="col-md-4">
+                                <h6><i class="fas fa-map-marker-alt"></i> Localisation</h6>
+                                <p>{{ startup.city }}, {{ startup.country }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Description et détails -->
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-body">
+                <h3>À propos</h3>
+                <p>{{ startup.description|linebreaks }}</p>
+            </div>
+        </div>
+
+        <!-- Jalons -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <h3>Jalons</h3>
+                <div class="timeline">
+                    {% for milestone in startup.milestones.all %}
+                    <div class="timeline-item">
+                        <div class="timeline-date">{{ milestone.date|date:"M Y" }}</div>
+                        <div class="timeline-content">
+                            <h5>{{ milestone.title }}</h5>
+                            <p>{{ milestone.description }}</p>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted">Aucun jalon n'a encore été ajouté.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Projets -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <h3>Projets</h3>
+                {% for project in startup.projects.all %}
+                <div class="mb-3">
+                    <h5>{{ project.title }}</h5>
+                    <p>{{ project.description }}</p>
+                    <div class="progress mb-2">
+                        <div class="progress-bar" role="progressbar" style="width: {{ project.progress }}%">
+                            {{ project.progress }}%
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <p class="text-muted">Aucun projet n'a encore été ajouté.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="col-md-4">
+        <!-- Équipe -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <h3>Équipe</h3>
+                <div class="mb-3">
+                    <h5>Fondateur</h5>
+                    <div class="d-flex align-items-center">
+                        {% if startup.founder.profile.avatar %}
+                        <img src="{{ startup.founder.profile.avatar.url }}" class="rounded-circle me-2" width="40" height="40">
+                        {% endif %}
+                        <div>
+                            <strong>{{ startup.founder.get_full_name }}</strong>
+                            <div class="text-muted">Fondateur</div>
+                        </div>
+                    </div>
+                </div>
+
+                <h5>Membres de l'équipe</h5>
+                {% for member in startup.team_members.all %}
+                <div class="d-flex align-items-center mb-2">
+                    {% if member.user.profile.avatar %}
+                    <img src="{{ member.user.profile.avatar.url }}" class="rounded-circle me-2" width="40" height="40">
+                    {% endif %}
+                    <div>
+                        <strong>{{ member.user.get_full_name }}</strong>
+                        <div class="text-muted">{{ member.role }}</div>
+                    </div>
+                </div>
+                {% empty %}
+                <p class="text-muted">Aucun membre dans l'équipe.</p>
+                {% endfor %}
+
+                {% if user.is_authenticated and user != startup.founder and not user in startup.team_members.all %}
+                <a href="#" class="btn btn-outline-primary w-100 mt-3">
+                    <i class="fas fa-user-plus"></i> Rejoindre l'équipe
+                </a>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Mentors -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <h3>Mentors</h3>
+                {% for mentor in startup.mentors.all %}
+                <div class="d-flex align-items-center mb-2">
+                    {% if mentor.user.profile.avatar %}
+                    <img src="{{ mentor.user.profile.avatar.url }}" class="rounded-circle me-2" width="40" height="40">
+                    {% endif %}
+                    <div>
+                        <strong>{{ mentor.user.get_full_name }}</strong>
+                        <div class="text-muted">{{ mentor.expertise_areas }}</div>
+                    </div>
+                </div>
+                {% empty %}
+                <p class="text-muted">Aucun mentor pour le moment.</p>
+                {% endfor %}
+
+                {% if user.is_authenticated and user.profile.is_mentor %}
+                <a href="{% url 'startups:mentor_request_create' startup.pk %}" class="btn btn-outline-primary w-100 mt-3">
+                    <i class="fas fa-hands-helping"></i> Devenir mentor
+                </a>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Investissements -->
+        {% if startup.investments.exists or user == startup.founder %}
+        <div class="card mb-4">
+            <div class="card-body">
+                <h3>Investissements</h3>
+                {% if startup.investments.exists %}
+                <div class="mb-3">
+                    <h5>Total levé</h5>
+                    <h3 class="text-success">{{ startup.total_investment|floatformat:0 }} USD</h3>
+                </div>
+                <div class="mb-3">
+                    <h5>Derniers investissements</h5>
+                    {% for investment in startup.investments.all|slice:":5" %}
+                    <div class="d-flex justify-content-between mb-2">
+                        <div>
+                            <strong>{{ investment.amount|floatformat:0 }} USD</strong>
+                            <div class="text-muted">{{ investment.investor.get_full_name }}</div>
+                        </div>
+                        <div class="text-muted">
+                            {{ investment.date|date:"d M Y" }}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-muted">Aucun investissement enregistré.</p>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+    .timeline {
+        position: relative;
+        padding: 20px 0;
+    }
+    .timeline-item {
+        position: relative;
+        padding-left: 50px;
+        margin-bottom: 30px;
+    }
+    .timeline-item::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: -30px;
+        width: 2px;
+        background-color: #e9ecef;
+    }
+    .timeline-item::after {
+        content: '';
+        position: absolute;
+        left: -4px;
+        top: 0;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background-color: #007bff;
+    }
+    .timeline-date {
+        font-size: 0.9rem;
+        color: #6c757d;
+        margin-bottom: 5px;
+    }
+    .timeline-content {
+        background-color: #f8f9fa;
+        padding: 15px;
+        border-radius: 4px;
+    }
+</style>
+{% endblock %}

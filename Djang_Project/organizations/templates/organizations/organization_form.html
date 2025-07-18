@@ -1,0 +1,220 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}
+    {% if form.instance.pk %}
+        Modifier {{ form.instance.name }}
+    {% else %}
+        Créer une organisation
+    {% endif %} - Community Lab
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <nav aria-label="breadcrumb" class="mb-4">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a href="{% url 'organizations:organization_list' %}">Organisations</a>
+                </li>
+                <li class="breadcrumb-item active">
+                    {% if form.instance.pk %}
+                        Modifier {{ form.instance.name }}
+                    {% else %}
+                        Créer une organisation
+                    {% endif %}
+                </li>
+            </ol>
+        </nav>
+
+        <div class="card">
+            <div class="card-body">
+                <h1 class="card-title mb-4">
+                    {% if form.instance.pk %}
+                        Modifier {{ form.instance.name }}
+                    {% else %}
+                        Créer une organisation
+                    {% endif %}
+                </h1>
+
+                <form method="post" enctype="multipart/form-data" class="organization-form" novalidate>
+                    {% csrf_token %}
+
+                    <div class="row mb-4">
+                        <div class="col-md-12">
+                            {{ form.name|crispy }}
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            {{ form.type|crispy }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.sector|crispy }}
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-12">
+                            {{ form.description|crispy }}
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            {{ form.logo|crispy }}
+                            {% if form.instance.logo %}
+                                <div class="mb-3">
+                                    <img src="{{ form.instance.logo.url }}" alt="Logo actuel" 
+                                         class="img-thumbnail" style="max-width: 150px;">
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.cover_image|crispy }}
+                            {% if form.instance.cover_image %}
+                                <div class="mb-3">
+                                    <img src="{{ form.instance.cover_image.url }}" alt="Image de couverture actuelle" 
+                                         class="img-thumbnail" style="max-width: 200px;">
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            {{ form.location|crispy }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.website|crispy }}
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            {{ form.email|crispy }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.phone|crispy }}
+                        </div>
+                    </div>
+
+                    <h5 class="mb-3">Réseaux sociaux</h5>
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            {{ form.facebook|crispy }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.twitter|crispy }}
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            {{ form.linkedin|crispy }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.instagram|crispy }}
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'organizations:organization_list' %}" class="btn btn-outline-secondary">
+                            Annuler
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            {% if form.instance.pk %}
+                                Mettre à jour
+                            {% else %}
+                                Créer
+                            {% endif %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .organization-form .form-group {
+        margin-bottom: 1rem;
+    }
+    .organization-form label {
+        font-weight: 500;
+    }
+    .organization-form .asteriskField {
+        color: #dc3545;
+        margin-left: 2px;
+    }
+    .organization-form .help-text {
+        font-size: 0.875rem;
+        color: #6c757d;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Preview images before upload
+    function previewImage(input, previewElement) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = previewElement.querySelector('img');
+                if (img) {
+                    img.src = e.target.result;
+                } else {
+                    const newImg = document.createElement('img');
+                    newImg.src = e.target.result;
+                    newImg.classList.add('img-thumbnail');
+                    newImg.style.maxWidth = previewElement.dataset.maxWidth || '150px';
+                    previewElement.appendChild(newImg);
+                }
+            }
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    // Setup image preview for logo and cover image
+    const logoInput = document.querySelector('input[name="logo"]');
+    const coverInput = document.querySelector('input[name="cover_image"]');
+    
+    if (logoInput) {
+        const logoPreview = document.createElement('div');
+        logoPreview.classList.add('mt-2');
+        logoPreview.dataset.maxWidth = '150px';
+        logoInput.parentNode.appendChild(logoPreview);
+        
+        logoInput.addEventListener('change', function() {
+            previewImage(this, logoPreview);
+        });
+    }
+
+    if (coverInput) {
+        const coverPreview = document.createElement('div');
+        coverPreview.classList.add('mt-2');
+        coverPreview.dataset.maxWidth = '200px';
+        coverInput.parentNode.appendChild(coverPreview);
+        
+        coverInput.addEventListener('change', function() {
+            previewImage(this, coverPreview);
+        });
+    }
+
+    // Form validation
+    const form = document.querySelector('.organization-form');
+    form.addEventListener('submit', function(event) {
+        if (!form.checkValidity()) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+        form.classList.add('was-validated');
+    });
+});
+</script>
+{% endblock %}

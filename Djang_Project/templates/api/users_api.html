@@ -1,0 +1,394 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}User Management API Documentation | {{ block.super }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .api-section {
+        margin-bottom: 2rem;
+        padding: 1.5rem;
+        border-radius: 0.5rem;
+        background: #fff;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .endpoint {
+        border-left: 4px solid #3498db;
+        padding: 1rem;
+        margin: 1rem 0;
+        background: #f8f9fa;
+    }
+    .method {
+        display: inline-block;
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.25rem;
+        font-weight: bold;
+        margin-right: 0.5rem;
+    }
+    .get { background: #28a745; color: white; }
+    .post { background: #007bff; color: white; }
+    .put { background: #ffc107; color: black; }
+    .delete { background: #dc3545; color: white; }
+    .patch { background: #6c757d; color: white; }
+    .endpoint-url {
+        font-family: monospace;
+        padding: 0.25rem;
+        background: #e9ecef;
+        border-radius: 0.25rem;
+        cursor: pointer;
+    }
+    .user-note {
+        background: #e8f4f8;
+        border: 1px solid #bee5eb;
+        padding: 1rem;
+        border-radius: 0.25rem;
+        margin-bottom: 1.5rem;
+    }
+    .response-example {
+        background: #272822;
+        color: #f8f8f2;
+        padding: 1rem;
+        border-radius: 0.25rem;
+        margin-top: 1rem;
+        font-family: monospace;
+    }
+    .role-badge {
+        display: inline-block;
+        padding: 0.2rem 0.5rem;
+        border-radius: 0.25rem;
+        font-size: 0.8rem;
+        margin-right: 0.5rem;
+    }
+    .admin { background: #dc3545; color: white; }
+    .manager { background: #ffc107; color: black; }
+    .member { background: #28a745; color: white; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h1 class="mb-4">User Management API Documentation</h1>
+
+    <div class="user-note">
+        <h5><i class="fas fa-users"></i> User Roles & Permissions</h5>
+        <p class="mb-0">
+            Available roles:
+            <span class="role-badge admin">Administrateur</span>
+            <span class="role-badge manager">Gestionnaire</span>
+            <span class="role-badge member">Membre</span>
+        </p>
+    </div>
+
+    <!-- User Profile Management -->
+    <div class="api-section">
+        <h2>User Profile Management</h2>
+
+        <!-- Get User Profile -->
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <span class="endpoint-url">/api/users/profile/</span>
+            <p>Get current user's profile</p>
+
+            <h6>Response:</h6>
+            <div class="response-example">
+                <pre>{
+    "id": "user-123",
+    "username": "john.doe",
+    "email": "john@example.com",
+    "full_name": "John Doe",
+    "role": "manager",
+    "profile": {
+        "avatar_url": "https://example.com/avatars/john.jpg",
+        "bio": "Entrepreneur passionné",
+        "location": "Bujumbura",
+        "phone": "+257123456789",
+        "linkedin": "https://linkedin.com/in/johndoe",
+        "expertise": ["Technology", "Entrepreneurship"]
+    },
+    "preferences": {
+        "language": "fr",
+        "timezone": "Africa/Bujumbura",
+        "notifications": {
+            "email": true,
+            "push": true
+        }
+    },
+    "created_at": "2024-01-01T00:00:00Z",
+    "last_login": "2024-01-19T14:00:00Z"
+}</pre>
+            </div>
+        </div>
+
+        <!-- Update Profile -->
+        <div class="endpoint">
+            <span class="method put">PUT</span>
+            <span class="endpoint-url">/api/users/profile/</span>
+            <p>Update user profile</p>
+
+            <h6>Request Body:</h6>
+            <div class="response-example">
+                <pre>{
+    "full_name": "John Doe",
+    "profile": {
+        "bio": "Entrepreneur passionné",
+        "location": "Bujumbura",
+        "phone": "+257123456789",
+        "linkedin": "https://linkedin.com/in/johndoe",
+        "expertise": ["Technology", "Entrepreneurship"]
+    },
+    "preferences": {
+        "language": "fr",
+        "timezone": "Africa/Bujumbura",
+        "notifications": {
+            "email": true,
+            "push": true
+        }
+    }
+}</pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Management -->
+    <div class="api-section">
+        <h2>User Management</h2>
+
+        <!-- List Users -->
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <span class="endpoint-url">/api/users/</span>
+            <p>List all users (Admin only)</p>
+
+            <h6>Query Parameters:</h6>
+            <table class="table params-table">
+                <thead>
+                    <tr>
+                        <th>Parameter</th>
+                        <th>Type</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>role</td>
+                        <td>string</td>
+                        <td>Filter by user role</td>
+                    </tr>
+                    <tr>
+                        <td>status</td>
+                        <td>string</td>
+                        <td>Filter by status (active, inactive)</td>
+                    </tr>
+                    <tr>
+                        <td>search</td>
+                        <td>string</td>
+                        <td>Search by name or email</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Create User -->
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <span class="endpoint-url">/api/users/</span>
+            <p>Create a new user (Admin only)</p>
+
+            <h6>Request Body:</h6>
+            <div class="response-example">
+                <pre>{
+    "email": "user@example.com",
+    "full_name": "New User",
+    "role": "member",
+    "send_invitation": true
+}</pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- Role Management -->
+    <div class="api-section">
+        <h2>Role Management</h2>
+
+        <!-- Assign Role -->
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <span class="endpoint-url">/api/users/{user_id}/roles/</span>
+            <p>Assign role to user (Admin only)</p>
+
+            <h6>Request Body:</h6>
+            <div class="response-example">
+                <pre>{
+    "role": "manager",
+    "scope": {
+        "startup_id": "startup-123",
+        "permissions": ["view", "edit", "delete"]
+    }
+}</pre>
+            </div>
+        </div>
+
+        <!-- List User Roles -->
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <span class="endpoint-url">/api/users/{user_id}/roles/</span>
+            <p>List user's roles and permissions</p>
+        </div>
+    </div>
+
+    <!-- Team Management -->
+    <div class="api-section">
+        <h2>Team Management</h2>
+
+        <!-- Create Team -->
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <span class="endpoint-url">/api/teams/</span>
+            <p>Create a new team</p>
+
+            <h6>Request Body:</h6>
+            <div class="response-example">
+                <pre>{
+    "name": "Tech Team",
+    "description": "Équipe technique",
+    "members": [
+        {
+            "user_id": "user-123",
+            "role": "team_lead"
+        },
+        {
+            "user_id": "user-456",
+            "role": "member"
+        }
+    ]
+}</pre>
+            </div>
+        </div>
+
+        <!-- Add Team Member -->
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <span class="endpoint-url">/api/teams/{team_id}/members/</span>
+            <p>Add member to team</p>
+
+            <h6>Request Body:</h6>
+            <div class="response-example">
+                <pre>{
+    "user_id": "user-789",
+    "role": "member",
+    "permissions": ["view", "edit"]
+}</pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- Security Settings -->
+    <div class="api-section">
+        <h2>Security Settings</h2>
+
+        <!-- Change Password -->
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <span class="endpoint-url">/api/users/security/password/</span>
+            <p>Change user password</p>
+
+            <h6>Request Body:</h6>
+            <div class="response-example">
+                <pre>{
+    "current_password": "current-password",
+    "new_password": "new-password",
+    "confirm_password": "new-password"
+}</pre>
+            </div>
+        </div>
+
+        <!-- Enable 2FA -->
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <span class="endpoint-url">/api/users/security/2fa/enable/</span>
+            <p>Enable two-factor authentication</p>
+
+            <h6>Response:</h6>
+            <div class="response-example">
+                <pre>{
+    "secret_key": "JBSWY3DPEHPK3PXP",
+    "qr_code_url": "https://example.com/qr/2fa.png",
+    "backup_codes": [
+        "1234-5678",
+        "8765-4321"
+    ]
+}</pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- Activity Log -->
+    <div class="api-section">
+        <h2>Activity Log</h2>
+
+        <!-- Get User Activity -->
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <span class="endpoint-url">/api/users/activity/</span>
+            <p>Get user activity history</p>
+
+            <h6>Query Parameters:</h6>
+            <table class="table params-table">
+                <thead>
+                    <tr>
+                        <th>Parameter</th>
+                        <th>Type</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>type</td>
+                        <td>string</td>
+                        <td>Filter by activity type</td>
+                    </tr>
+                    <tr>
+                        <td>date_range</td>
+                        <td>string</td>
+                        <td>Filter by date range</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h6>Response:</h6>
+            <div class="response-example">
+                <pre>{
+    "activities": [
+        {
+            "id": "activity-123",
+            "type": "login",
+            "timestamp": "2024-01-19T14:00:00Z",
+            "ip_address": "192.168.1.1",
+            "user_agent": "Mozilla/5.0...",
+            "location": "Bujumbura, Burundi"
+        }
+    ]
+}</pre>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Add copy functionality for endpoint URLs
+    document.querySelectorAll('.endpoint-url').forEach(element => {
+        element.addEventListener('click', function() {
+            const text = this.textContent;
+            navigator.clipboard.writeText(text).then(() => {
+                const originalText = this.textContent;
+                this.textContent = 'Copied!';
+                setTimeout(() => {
+                    this.textContent = originalText;
+                }, 1000);
+            });
+        });
+    });
+</script>
+{% endblock %}

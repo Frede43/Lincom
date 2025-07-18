@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block extra_css %}
+<style>
+    .competition-card, .project-call-card {
+        height: 100%;
+        transition: transform 0.2s;
+    }
+    .competition-card:hover, .project-call-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    .status-badge {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+    }
+    .deadline {
+        font-size: 0.9rem;
+        color: #dc3545;
+    }
+    .prize-amount {
+        font-weight: bold;
+        color: #28a745;
+    }
+    .participant-count {
+        font-size: 0.9rem;
+        color: #6c757d;
+    }
+    .organization-stats {
+        background: #f8f9fa;
+        border-radius: 0.5rem;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    .stat-card {
+        text-align: center;
+        padding: 1rem;
+        background: white;
+        border-radius: 0.5rem;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    .stat-number {
+        font-size: 2rem;
+        font-weight: bold;
+        color: #007bff;
+    }
+    .stat-label {
+        font-size: 0.9rem;
+        color: #6c757d;
+        margin-top: 0.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'home' %}">Accueil</a></li>
+                    {% block breadcrumb %}{% endblock %}
+                </ol>
+            </nav>
+        </div>
+    </div>
+    
+    {% block organization_content %}{% endblock %}
+</div>
+{% endblock %}

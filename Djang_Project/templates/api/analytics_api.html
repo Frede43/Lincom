@@ -1,0 +1,325 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Analytics API Documentation | {{ block.super }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .api-section {
+        margin-bottom: 2rem;
+        padding: 1.5rem;
+        border-radius: 0.5rem;
+        background: #fff;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .endpoint {
+        border-left: 4px solid #3498db;
+        padding: 1rem;
+        margin: 1rem 0;
+        background: #f8f9fa;
+    }
+    .method {
+        display: inline-block;
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.25rem;
+        font-weight: bold;
+        margin-right: 0.5rem;
+    }
+    .get { background: #28a745; color: white; }
+    .post { background: #007bff; color: white; }
+    .endpoint-url {
+        font-family: monospace;
+        padding: 0.25rem;
+        background: #e9ecef;
+        border-radius: 0.25rem;
+        cursor: pointer;
+    }
+    .params-table {
+        width: 100%;
+        margin-top: 1rem;
+    }
+    .params-table th {
+        background: #f1f3f5;
+    }
+    .response-example {
+        background: #272822;
+        color: #f8f8f2;
+        padding: 1rem;
+        border-radius: 0.25rem;
+        margin-top: 1rem;
+        font-family: monospace;
+    }
+    .chart-preview {
+        background: #f8f9fa;
+        padding: 1rem;
+        border-radius: 0.25rem;
+        margin-top: 1rem;
+        text-align: center;
+    }
+    .chart-preview img {
+        max-width: 100%;
+        height: auto;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h1 class="mb-4">Analytics API Documentation</h1>
+
+    <!-- Overview Metrics -->
+    <div class="api-section">
+        <h2>Overview Metrics</h2>
+
+        <!-- Platform Overview -->
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <span class="endpoint-url">/api/analytics/overview/</span>
+            <p>Retrieve platform-wide overview metrics</p>
+
+            <h6>Query Parameters:</h6>
+            <table class="table params-table">
+                <thead>
+                    <tr>
+                        <th>Parameter</th>
+                        <th>Type</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>period</td>
+                        <td>string</td>
+                        <td>Time period (daily, weekly, monthly, yearly)</td>
+                    </tr>
+                    <tr>
+                        <td>start_date</td>
+                        <td>date</td>
+                        <td>Start date for custom period</td>
+                    </tr>
+                    <tr>
+                        <td>end_date</td>
+                        <td>date</td>
+                        <td>End date for custom period</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="response-example">
+                <pre>{
+    "total_startups": 150,
+    "total_organizations": 25,
+    "active_projects": 75,
+    "total_competitions": 30,
+    "growth_metrics": {
+        "startup_growth": 15.5,
+        "project_growth": 22.3,
+        "competition_participation": 45.8
+    },
+    "sector_distribution": {
+        "Technology": 35,
+        "Agriculture": 25,
+        "Healthcare": 20,
+        "Education": 15,
+        "Other": 5
+    },
+    "timeline_data": {
+        "labels": ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
+        "startups": [100, 110, 120, 125, 135, 150],
+        "projects": [50, 55, 60, 65, 70, 75]
+    }
+}</pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- Startup Analytics -->
+    <div class="api-section">
+        <h2>Startup Analytics</h2>
+
+        <!-- Startup Performance -->
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <span class="endpoint-url">/api/analytics/startups/performance/</span>
+            <p>Retrieve performance metrics for startups</p>
+
+            <div class="response-example">
+                <pre>{
+    "top_performing": [
+        {
+            "id": 1,
+            "name": "TechStart Burundi",
+            "score": 95.5,
+            "metrics": {
+                "project_success_rate": 88,
+                "competition_wins": 5,
+                "growth_rate": 25
+            }
+        }
+    ],
+    "sector_performance": {
+        "Technology": {
+            "average_score": 85.5,
+            "total_startups": 45,
+            "growth_rate": 18.5
+        }
+    },
+    "stage_distribution": {
+        "idea": 30,
+        "early": 45,
+        "growth": 20,
+        "mature": 5
+    }
+}</pre>
+            </div>
+        </div>
+
+        <!-- Startup Growth Trends -->
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <span class="endpoint-url">/api/analytics/startups/growth/</span>
+            <p>Retrieve growth trends for startups</p>
+        </div>
+    </div>
+
+    <!-- Project Analytics -->
+    <div class="api-section">
+        <h2>Project Analytics</h2>
+
+        <!-- Project Success Metrics -->
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <span class="endpoint-url">/api/analytics/projects/success/</span>
+            <p>Retrieve success metrics for projects</p>
+
+            <div class="response-example">
+                <pre>{
+    "overall_success_rate": 75.5,
+    "by_sector": {
+        "Technology": 82.3,
+        "Agriculture": 78.9,
+        "Healthcare": 73.2
+    },
+    "by_stage": {
+        "idea": 65.4,
+        "early": 72.8,
+        "growth": 85.3,
+        "mature": 91.2
+    },
+    "success_factors": {
+        "team_size": 0.65,
+        "duration": 0.45,
+        "budget": 0.55
+    }
+}</pre>
+            </div>
+        </div>
+
+        <!-- Project Timeline Analysis -->
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <span class="endpoint-url">/api/analytics/projects/timeline/</span>
+            <p>Retrieve timeline analysis for projects</p>
+        </div>
+    </div>
+
+    <!-- Competition Analytics -->
+    <div class="api-section">
+        <h2>Competition Analytics</h2>
+
+        <!-- Competition Performance -->
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <span class="endpoint-url">/api/analytics/competitions/performance/</span>
+            <p>Retrieve performance metrics for competitions</p>
+
+            <div class="response-example">
+                <pre>{
+    "participation_rate": 85.5,
+    "by_type": {
+        "pitch": {
+            "participation_rate": 88.2,
+            "average_participants": 25,
+            "success_rate": 92.5
+        },
+        "hackathon": {
+            "participation_rate": 82.8,
+            "average_participants": 40,
+            "success_rate": 88.3
+        }
+    },
+    "winner_analysis": {
+        "sector_distribution": {
+            "Technology": 45,
+            "Agriculture": 30,
+            "Healthcare": 25
+        },
+        "stage_distribution": {
+            "early": 35,
+            "growth": 45,
+            "mature": 20
+        }
+    }
+}</pre>
+            </div>
+        </div>
+
+        <!-- Competition Impact -->
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <span class="endpoint-url">/api/analytics/competitions/impact/</span>
+            <p>Retrieve impact metrics for competitions</p>
+        </div>
+    </div>
+
+    <!-- Custom Reports -->
+    <div class="api-section">
+        <h2>Custom Reports</h2>
+
+        <!-- Generate Custom Report -->
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <span class="endpoint-url">/api/analytics/reports/generate/</span>
+            <p>Generate a custom analytics report</p>
+
+            <h6>Request Body:</h6>
+            <div class="response-example">
+                <pre>{
+    "metrics": ["startup_growth", "project_success", "competition_impact"],
+    "dimensions": ["sector", "stage", "location"],
+    "period": {
+        "start_date": "2024-01-01",
+        "end_date": "2024-12-31"
+    },
+    "format": "pdf"
+}</pre>
+            </div>
+        </div>
+
+        <!-- Scheduled Reports -->
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <span class="endpoint-url">/api/analytics/reports/schedule/</span>
+            <p>Schedule recurring analytics reports</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Add copy functionality for endpoint URLs
+    document.querySelectorAll('.endpoint-url').forEach(element => {
+        element.addEventListener('click', function() {
+            const text = this.textContent;
+            navigator.clipboard.writeText(text).then(() => {
+                const originalText = this.textContent;
+                this.textContent = 'Copied!';
+                setTimeout(() => {
+                    this.textContent = originalText;
+                }, 1000);
+            });
+        });
+    });
+</script>
+{% endblock %}

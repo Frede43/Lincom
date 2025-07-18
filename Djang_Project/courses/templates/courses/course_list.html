@@ -1,0 +1,193 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block title %}Cours - Community Lab{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- En-tête et filtres -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1 class="mb-3">Explorez nos cours</h1>
+            <p class="lead text-muted">
+                Découvrez notre sélection de cours conçus pour les entrepreneurs et innovateurs du Burundi
+            </p>
+        </div>
+        <div class="col-md-4">
+            <form method="get" class="mb-3">
+                <div class="input-group">
+                    <input type="text" name="search" class="form-control" 
+                           placeholder="Rechercher un cours..." 
+                           value="{{ search_query }}">
+                    <button class="btn btn-primary" type="submit">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Filtres -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <form method="get" class="row g-3">
+                        <div class="col-md-4">
+                            <label for="level" class="form-label">Niveau</label>
+                            <select name="level" id="level" class="form-select">
+                                <option value="">Tous les niveaux</option>
+                                {% for level_code, level_name in levels %}
+                                <option value="{{ level_code }}" 
+                                        {% if level_code == current_level %}selected{% endif %}>
+                                    {{ level_name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="language" class="form-label">Langue</label>
+                            <select name="language" id="language" class="form-select">
+                                <option value="">Toutes les langues</option>
+                                <option value="Français" 
+                                        {% if current_language == 'Français' %}selected{% endif %}>
+                                    Français
+                                </option>
+                                <option value="Kirundi" 
+                                        {% if current_language == 'Kirundi' %}selected{% endif %}>
+                                    Kirundi
+                                </option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary w-100">
+                                Appliquer les filtres
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Liste des cours -->
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+        {% for course in courses %}
+        <div class="col">
+            <div class="card h-100 shadow-sm">
+                {% if course.image %}
+                <img src="{{ course.image.url }}" class="card-img-top" alt="{{ course.title }}"
+                     style="height: 200px; object-fit: cover;">
+                {% else %}
+                <img src="{% static 'images/course-default.jpg' %}" class="card-img-top" 
+                     alt="Image par défaut" style="height: 200px; object-fit: cover;">
+                {% endif %}
+                
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <span class="badge bg-primary">{{ course.get_level_display }}</span>
+                        <span class="badge bg-secondary">{{ course.language }}</span>
+                    </div>
+                    <h5 class="card-title mb-3">{{ course.title }}</h5>
+                    <p class="card-text text-muted mb-3">{{ course.overview|truncatewords:20 }}</p>
+                    
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <small class="text-muted">
+                            <i class="fas fa-users me-1"></i>
+                            {{ course.enrolled_count }} inscrits
+                        </small>
+                        <small class="text-muted">
+                            <i class="fas fa-book me-1"></i>
+                            {{ course.modules.count }} modules
+                        </small>
+                    </div>
+                    
+                    <div class="d-flex align-items-center mb-3">
+                        <img src="{{ course.instructor.profile_picture.url }}" 
+                             class="rounded-circle me-2" alt="{{ course.instructor.get_full_name }}"
+                             style="width: 30px; height: 30px; object-fit: cover;">
+                        <small class="text-muted">
+                            {{ course.instructor.get_full_name }}
+                        </small>
+                    </div>
+                </div>
+                
+                <div class="card-footer bg-transparent">
+                    <a href="{% url 'courses:course_detail' course.slug %}" 
+                       class="btn btn-outline-primary w-100">
+                        Voir le cours
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="alert alert-info text-center">
+                <i class="fas fa-info-circle me-2"></i>
+                Aucun cours ne correspond à vos critères de recherche.
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if is_paginated %}
+    <nav aria-label="Navigation des pages" class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if current_level %}&level={{ current_level }}{% endif %}{% if current_language %}&language={{ current_language }}{% endif %}">
+                    Précédent
+                </a>
+            </li>
+            {% endif %}
+
+            {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+            <li class="page-item active">
+                <span class="page-link">{{ num }}</span>
+            </li>
+            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}{% if current_level %}&level={{ current_level }}{% endif %}{% if current_language %}&language={{ current_language }}{% endif %}">
+                    {{ num }}
+                </a>
+            </li>
+            {% endif %}
+            {% endfor %}
+
+            {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if current_level %}&level={{ current_level }}{% endif %}{% if current_language %}&language={{ current_language }}{% endif %}">
+                    Suivant
+                </a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .card {
+        transition: transform 0.2s ease-in-out;
+    }
+    .card:hover {
+        transform: translateY(-5px);
+    }
+    .badge {
+        font-weight: 500;
+    }
+    .pagination .page-link {
+        color: var(--bs-primary);
+    }
+    .pagination .page-item.active .page-link {
+        background-color: var(--bs-primary);
+        border-color: var(--bs-primary);
+        color: white;
+    }
+</style>
+{% endblock %}

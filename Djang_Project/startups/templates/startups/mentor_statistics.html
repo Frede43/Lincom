@@ -1,0 +1,145 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{% trans "Statistiques de mentorat" %} | {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-md-12 mb-4">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="h4 mb-0">{% trans "Vue d'ensemble" %}</h2>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h3 class="h5">{% trans "Demandes totales" %}</h3>
+                                <p class="display-4">{{ stats.total_requests }}</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h3 class="h5">{% trans "Taux d'acceptation" %}</h3>
+                                <p class="display-4">{{ stats.acceptance_rate }}%</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h3 class="h5">{% trans "En attente" %}</h3>
+                                <p class="display-4">{{ stats.pending_requests }}</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h3 class="h5">{% trans "Temps moyen de réponse" %}</h3>
+                                <p class="display-4">{{ stats.avg_response_time|default:"N/A" }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="h5 mb-0">{% trans "Statut des demandes" %}</h3>
+                </div>
+                <div class="card-body">
+                    <canvas id="requestsChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        {% if user.profile.is_mentor %}
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="h5 mb-0">{% trans "Vos startups" %}</h3>
+                </div>
+                <div class="card-body">
+                    <h4 class="h6">{% trans "Startups actuellement mentorées" %}: {{ mentor_stats.current_startups }}</h4>
+                    <div class="list-group mt-3">
+                        {% for startup in active_startups %}
+                        <a href="{% url 'startup_detail' startup.slug %}" class="list-group-item list-group-item-action">
+                            {{ startup.name }}
+                            <span class="badge bg-primary float-end">{{ startup.stage }}</span>
+                        </a>
+                        {% empty %}
+                        <p class="text-muted">{% trans "Vous ne mentorez aucune startup actuellement." %}</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if user.profile.is_founder %}
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="h5 mb-0">{% trans "Vos mentors" %}</h3>
+                </div>
+                <div class="card-body">
+                    <h4 class="h6">{% trans "Mentors actifs" %}: {{ startup_stats.active_mentors }}</h4>
+                    <div class="list-group mt-3">
+                        {% for mentor in active_mentors %}
+                        <div class="list-group-item">
+                            {{ mentor.get_full_name }}
+                            <small class="text-muted d-block">{{ mentor.expertise_areas }}</small>
+                        </div>
+                        {% empty %}
+                        <p class="text-muted">{% trans "Vous n'avez pas encore de mentors." %}</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('requestsChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'pie',
+        data: {
+            labels: [
+                '{% trans "Acceptées" %}',
+                '{% trans "Rejetées" %}',
+                '{% trans "En attente" %}'
+            ],
+            datasets: [{
+                data: [
+                    {{ stats.accepted_requests }},
+                    {{ stats.rejected_requests }},
+                    {{ stats.pending_requests }}
+                ],
+                backgroundColor: [
+                    '#28a745',
+                    '#dc3545',
+                    '#ffc107'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

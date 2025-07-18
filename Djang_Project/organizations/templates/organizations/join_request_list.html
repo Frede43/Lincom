@@ -1,0 +1,223 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Demandes d'adhésion - {{ organization.name }} - Community Lab{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <nav aria-label="breadcrumb" class="mb-4">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a href="{% url 'organizations:organization_list' %}">Organisations</a>
+                </li>
+                <li class="breadcrumb-item">
+                    <a href="{% url 'organizations:organization_detail' organization.id %}">
+                        {{ organization.name }}
+                    </a>
+                </li>
+                <li class="breadcrumb-item active">Demandes d'adhésion</li>
+            </ol>
+        </nav>
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>Demandes d'adhésion</h1>
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <form method="get" class="mb-4">
+                    <div class="input-group">
+                        <input type="text" name="search" class="form-control" 
+                               placeholder="Rechercher une demande..." 
+                               value="{{ request.GET.search }}">
+                        <select name="status" class="form-select" style="max-width: 200px;">
+                            <option value="">Tous les statuts</option>
+                            {% for status in statuses %}
+                                <option value="{{ status.0 }}" {% if request.GET.status == status.0 %}selected{% endif %}>
+                                    {{ status.1 }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </form>
+
+                {% if requests %}
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Demandeur</th>
+                                    <th>Date</th>
+                                    <th>Statut</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for request in requests %}
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                {% if request.user.profile.avatar %}
+                                                    <img src="{{ request.user.profile.avatar.url }}" 
+                                                         class="rounded-circle me-3" 
+                                                         style="width: 40px; height: 40px;" 
+                                                         alt="{{ request.user.get_full_name }}">
+                                                {% endif %}
+                                                <div>
+                                                    <h6 class="mb-0">
+                                                        <a href="{% url 'accounts:profile_detail' request.user.username %}" 
+                                                           class="text-decoration-none">
+                                                            {{ request.user.get_full_name }}
+                                                        </a>
+                                                    </h6>
+                                                    <small class="text-muted">{{ request.user.email }}</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>{{ request.created_at|date:"d/m/Y H:i" }}</td>
+                                        <td>
+                                            <span class="badge {% if request.status == 'PENDING' %}bg-warning{% elif request.status == 'APPROVED' %}bg-success{% else %}bg-danger{% endif %}">
+                                                {{ request.get_status_display }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <div class="btn-group">
+                                                <a href="{% url 'organizations:join_request_detail' organization.id request.id %}" 
+                                                   class="btn btn-sm btn-outline-primary">
+                                                    Voir
+                                                </a>
+                                                {% if request.status == 'PENDING' %}
+                                                    <button type="button" 
+                                                            class="btn btn-sm btn-outline-primary dropdown-toggle dropdown-toggle-split" 
+                                                            data-bs-toggle="dropdown" 
+                                                            aria-expanded="false">
+                                                    </button>
+                                                    <ul class="dropdown-menu">
+                                                        <li>
+                                                            <form method="post" 
+                                                                  action="{% url 'organizations:join_request_approve' organization.id request.id %}">
+                                                                {% csrf_token %}
+                                                                <button type="submit" class="dropdown-item text-success">
+                                                                    <i class="fas fa-check"></i> Approuver
+                                                                </button>
+                                                            </form>
+                                                        </li>
+                                                        <li>
+                                                            <form method="post" 
+                                                                  action="{% url 'organizations:join_request_reject' organization.id request.id %}">
+                                                                {% csrf_token %}
+                                                                <button type="submit" class="dropdown-item text-danger">
+                                                                    <i class="fas fa-times"></i> Refuser
+                                                                </button>
+                                                            </form>
+                                                        </li>
+                                                    </ul>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    {% if is_paginated %}
+                        <nav aria-label="Navigation des pages" class="mt-4">
+                            <ul class="pagination justify-content-center">
+                                {% if page_obj.has_previous %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}">
+                                            Précédent
+                                        </a>
+                                    </li>
+                                {% endif %}
+
+                                {% for num in page_obj.paginator.page_range %}
+                                    {% if page_obj.number == num %}
+                                        <li class="page-item active">
+                                            <span class="page-link">{{ num }}</span>
+                                        </li>
+                                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ num }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}">
+                                                {{ num }}
+                                            </a>
+                                        </li>
+                                    {% endif %}
+                                {% endfor %}
+
+                                {% if page_obj.has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}">
+                                            Suivant
+                                        </a>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                    {% endif %}
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                        <h5>Aucune demande trouvée</h5>
+                        <p class="text-muted">
+                            {% if request.GET.search or request.GET.status %}
+                                Aucune demande ne correspond à vos critères de recherche.
+                            {% else %}
+                                Il n'y a pas de demandes d'adhésion pour le moment.
+                            {% endif %}
+                        </p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title">Statistiques</h5>
+                <div class="row text-center">
+                    <div class="col-4">
+                        <h3>{{ total_requests }}</h3>
+                        <p class="text-muted mb-0">Total</p>
+                    </div>
+                    <div class="col-4">
+                        <h3>{{ pending_count }}</h3>
+                        <p class="text-muted mb-0">En attente</p>
+                    </div>
+                    <div class="col-4">
+                        <h3>{{ approved_count }}</h3>
+                        <p class="text-muted mb-0">Approuvées</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Informations</h5>
+                <p class="card-text">
+                    Les demandes d'adhésion sont traitées par les administrateurs de l'organisation.
+                    Une fois approuvée, le demandeur devient automatiquement membre de l'organisation.
+                </p>
+                <h6>Processus de validation :</h6>
+                <ol class="ps-3">
+                    <li>Examen de la motivation</li>
+                    <li>Vérification de l'expérience</li>
+                    <li>Évaluation de la contribution potentielle</li>
+                    <li>Validation finale</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+{% endblock %}

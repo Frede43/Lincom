@@ -1,0 +1,249 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ event.title }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- En-tête de l'événement -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1>{{ event.title }}</h1>
+            <p class="lead">{{ event.description }}</p>
+            <div class="d-flex flex-wrap gap-3 mb-3">
+                <span class="badge bg-primary">
+                    <i class="fas fa-tag"></i> {{ event.get_category_display }}
+                </span>
+                {% if event.is_virtual %}
+                <span class="badge bg-info">
+                    <i class="fas fa-video"></i> Événement virtuel
+                </span>
+                {% else %}
+                <span class="badge bg-success">
+                    <i class="fas fa-map-marker-alt"></i> {{ event.location }}
+                </span>
+                {% endif %}
+                <span class="badge bg-secondary">
+                    <i class="fas fa-users"></i> {{ event.registrations.count }}/{{ event.max_participants }} participants
+                </span>
+            </div>
+        </div>
+        <div class="col-md-4 text-md-end">
+            {% if user.is_authenticated %}
+                {% if user == event.organizer %}
+                <a href="{% url 'events:event-update' event.id %}" class="btn btn-outline-primary me-2">
+                    <i class="fas fa-edit"></i> Modifier
+                </a>
+                <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                    <i class="fas fa-trash"></i> Supprimer
+                </button>
+                {% else %}
+                    {% if is_registered %}
+                    <form method="post" action="{% url 'events:event-unregister' event.id %}" class="d-inline">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-times"></i> Se désinscrire
+                        </button>
+                    </form>
+                    {% else %}
+                        {% if event.registrations.count < event.max_participants %}
+                        <form method="post" action="{% url 'events:event-register' event.id %}" class="d-inline">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-check"></i> S'inscrire
+                            </button>
+                        </form>
+                        {% else %}
+                        <button class="btn btn-secondary" disabled>Complet</button>
+                        {% endif %}
+                    {% endif %}
+                {% endif %}
+            {% else %}
+            <a href="{% url 'login' %}?next={{ request.path }}" class="btn btn-primary">
+                Se connecter pour s'inscrire
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Informations détaillées -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Détails de l'événement</h5>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <p><i class="fas fa-calendar"></i> <strong>Début:</strong><br>
+                                {{ event.start_date|date:"d/m/Y H:i" }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><i class="fas fa-calendar-check"></i> <strong>Fin:</strong><br>
+                                {{ event.end_date|date:"d/m/Y H:i" }}</p>
+                        </div>
+                        {% if event.is_virtual and event.meeting_link %}
+                        <div class="col-12">
+                            <p><i class="fas fa-link"></i> <strong>Lien de la réunion:</strong><br>
+                                <a href="{{ event.meeting_link }}" target="_blank">{{ event.meeting_link }}</a></p>
+                        </div>
+                        {% endif %}
+                        <div class="col-12">
+                            <p><i class="fas fa-user"></i> <strong>Organisateur:</strong><br>
+                                {{ event.organizer.get_full_name|default:event.organizer.username }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            {% if event.image %}
+            <img src="{{ event.image.url }}" class="img-fluid rounded" alt="{{ event.title }}">
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Intervenants -->
+    {% if event.speakers.exists %}
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">Intervenants</h5>
+            <div class="row row-cols-1 row-cols-md-2 g-4">
+                {% for speaker in event.speakers.all %}
+                <div class="col">
+                    <div class="d-flex align-items-center">
+                        {% if speaker.photo %}
+                        <img src="{{ speaker.photo.url }}" class="rounded-circle me-3" width="60" height="60" alt="{{ speaker.name }}">
+                        {% endif %}
+                        <div>
+                            <h6 class="mb-1">{{ speaker.name }}</h6>
+                            <p class="mb-1 text-muted">{{ speaker.bio|truncatewords:20 }}</p>
+                            <div class="social-links">
+                                {% if speaker.linkedin_profile %}
+                                <a href="{{ speaker.linkedin_profile }}" target="_blank" class="me-2">
+                                    <i class="fab fa-linkedin"></i>
+                                </a>
+                                {% endif %}
+                                {% if speaker.twitter_profile %}
+                                <a href="{{ speaker.twitter_profile }}" target="_blank">
+                                    <i class="fab fa-twitter"></i>
+                                </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Participants -->
+    {% if user.is_authenticated and is_registered or user == event.organizer %}
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">Participants ({{ event.registrations.count }})</h5>
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Participant</th>
+                            <th>Date d'inscription</th>
+                            <th>Statut</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for registration in event.registrations.all %}
+                        <tr>
+                            <td>{{ registration.participant.get_full_name|default:registration.participant.username }}</td>
+                            <td>{{ registration.registration_date|date:"d/m/Y H:i" }}</td>
+                            <td>
+                                <span class="badge {% if registration.status == 'confirmed' %}bg-success{% elif registration.status == 'pending' %}bg-warning{% else %}bg-danger{% endif %}">
+                                    {{ registration.get_status_display }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Commentaires et retours -->
+    {% if event.is_past %}
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Retours</h5>
+            {% if user.is_authenticated and is_registered %}
+                {% if not has_feedback %}
+                <form method="post" action="{% url 'events:event-feedback' event.id %}" class="mb-4">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="rating" class="form-label">Note</label>
+                        <select name="rating" id="rating" class="form-select" required>
+                            <option value="">Sélectionnez une note</option>
+                            {% for i in "12345" %}
+                            <option value="{{ i }}">{{ i }} étoile{{ i|pluralize:"s" }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="comment" class="form-label">Commentaire</label>
+                        <textarea name="comment" id="comment" class="form-control" rows="3" required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Envoyer mon retour</button>
+                </form>
+                {% endif %}
+            {% endif %}
+
+            {% for feedback in event.feedback.all %}
+            <div class="card mb-3">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <h6 class="card-subtitle mb-2 text-muted">
+                            {{ feedback.participant.get_full_name|default:feedback.participant.username }}
+                        </h6>
+                        <div class="text-warning">
+                            {% for i in "12345" %}
+                            <i class="fas fa-star{% if forloop.counter > feedback.rating %}-o{% endif %}"></i>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <p class="card-text">{{ feedback.comment }}</p>
+                    <small class="text-muted">{{ feedback.created_at|date:"d/m/Y H:i" }}</small>
+                </div>
+            </div>
+            {% empty %}
+            <p class="text-muted">Aucun retour pour le moment.</p>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Modal de confirmation de suppression -->
+{% if user == event.organizer %}
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">Confirmer la suppression</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Êtes-vous sûr de vouloir supprimer cet événement ? Cette action est irréversible.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <form method="post" action="{% url 'events:event-delete' event.id %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">Supprimer</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

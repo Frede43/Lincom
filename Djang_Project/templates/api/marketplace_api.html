@@ -1,0 +1,429 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Marketplace & Extensions API Documentation | {{ block.super }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .api-section {
+        margin-bottom: 2rem;
+        padding: 1.5rem;
+        border-radius: 0.5rem;
+        background: #fff;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .endpoint {
+        border-left: 4px solid #3498db;
+        padding: 1rem;
+        margin: 1rem 0;
+        background: #f8f9fa;
+    }
+    .method {
+        display: inline-block;
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.25rem;
+        font-weight: bold;
+        margin-right: 0.5rem;
+    }
+    .get { background: #28a745; color: white; }
+    .post { background: #007bff; color: white; }
+    .put { background: #ffc107; color: black; }
+    .delete { background: #dc3545; color: white; }
+    .patch { background: #6c757d; color: white; }
+    .endpoint-url {
+        font-family: monospace;
+        padding: 0.25rem;
+        background: #e9ecef;
+        border-radius: 0.25rem;
+        cursor: pointer;
+    }
+    .marketplace-note {
+        background: #e8f4f8;
+        border: 1px solid #bee5eb;
+        padding: 1rem;
+        border-radius: 0.25rem;
+        margin-bottom: 1.5rem;
+    }
+    .response-example {
+        background: #272822;
+        color: #f8f8f2;
+        padding: 1rem;
+        border-radius: 0.25rem;
+        margin-top: 1rem;
+        font-family: monospace;
+    }
+    .extension-type {
+        display: inline-block;
+        padding: 0.2rem 0.5rem;
+        border-radius: 0.25rem;
+        font-size: 0.8rem;
+        margin-right: 0.5rem;
+    }
+    .plugin { background: #007bff; color: white; }
+    .theme { background: #28a745; color: white; }
+    .integration { background: #dc3545; color: white; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h1 class="mb-4">Marketplace & Extensions API Documentation</h1>
+
+    <div class="marketplace-note">
+        <h5><i class="fas fa-puzzle-piece"></i> Extension Types</h5>
+        <p class="mb-0">
+            Available types:
+            <span class="extension-type plugin">Plugin</span>
+            <span class="extension-type theme">Theme</span>
+            <span class="extension-type integration">Integration</span>
+        </p>
+    </div>
+
+    <!-- Extension Management -->
+    <div class="api-section">
+        <h2>Extension Management</h2>
+
+        <!-- Create Extension -->
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <span class="endpoint-url">/api/marketplace/extensions/</span>
+            <p>Create new extension</p>
+
+            <h6>Request Body:</h6>
+            <div class="response-example">
+                <pre>{
+    "name": "Analytics Pro",
+    "description": "Advanced analytics tools for startups",
+    "type": "plugin",
+    "version": "1.0.0",
+    "author": {
+        "name": "TechHub Burundi",
+        "email": "dev@techhub.bi",
+        "website": "https://techhub.bi"
+    },
+    "pricing": {
+        "model": "subscription",
+        "price": 1999,  // in cents
+        "currency": "USD",
+        "trial_days": 14
+    },
+    "requirements": {
+        "platform_version": ">=2.0.0",
+        "dependencies": [
+            {
+                "name": "data-viz",
+                "version": ">=1.5.0"
+            }
+        ]
+    },
+    "capabilities": [
+        "read_analytics",
+        "export_reports"
+    ]
+}</pre>
+            </div>
+
+            <h6>Response:</h6>
+            <div class="response-example">
+                <pre>{
+    "id": "ext_123",
+    "name": "Analytics Pro",
+    "status": "pending_review",
+    "created_at": "2024-01-19T14:00:00Z",
+    "version": "1.0.0",
+    "install_url": "https://marketplace.example.com/ext/analytics-pro"
+}</pre>
+            </div>
+        </div>
+
+        <!-- Update Extension -->
+        <div class="endpoint">
+            <span class="method put">PUT</span>
+            <span class="endpoint-url">/api/marketplace/extensions/{extension_id}/</span>
+            <p>Update extension</p>
+        </div>
+
+        <!-- List Extensions -->
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <span class="endpoint-url">/api/marketplace/extensions/</span>
+            <p>List extensions</p>
+
+            <h6>Query Parameters:</h6>
+            <table class="table params-table">
+                <thead>
+                    <tr>
+                        <th>Parameter</th>
+                        <th>Type</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>type</td>
+                        <td>string</td>
+                        <td>Filter by type</td>
+                    </tr>
+                    <tr>
+                        <td>category</td>
+                        <td>string</td>
+                        <td>Filter by category</td>
+                    </tr>
+                    <tr>
+                        <td>pricing</td>
+                        <td>string</td>
+                        <td>Filter by pricing model</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Installation Management -->
+    <div class="api-section">
+        <h2>Installation Management</h2>
+
+        <!-- Install Extension -->
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <span class="endpoint-url">/api/marketplace/installations/</span>
+            <p>Install extension</p>
+
+            <h6>Request Body:</h6>
+            <div class="response-example">
+                <pre>{
+    "extension_id": "ext_123",
+    "version": "1.0.0",
+    "settings": {
+        "api_key": "sk_test_123",
+        "webhook_url": "https://example.com/webhook"
+    },
+    "auto_update": true,
+    "environment": "production"
+}</pre>
+            </div>
+        </div>
+
+        <!-- Uninstall Extension -->
+        <div class="endpoint">
+            <span class="method delete">DELETE</span>
+            <span class="endpoint-url">/api/marketplace/installations/{installation_id}/</span>
+            <p>Uninstall extension</p>
+        </div>
+    </div>
+
+    <!-- License Management -->
+    <div class="api-section">
+        <h2>License Management</h2>
+
+        <!-- Activate License -->
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <span class="endpoint-url">/api/marketplace/licenses/activate/</span>
+            <p>Activate extension license</p>
+
+            <h6>Request Body:</h6>
+            <div class="response-example">
+                <pre>{
+    "license_key": "XXXX-YYYY-ZZZZ",
+    "extension_id": "ext_123",
+    "organization_id": "org_456",
+    "activation_data": {
+        "domain": "example.com",
+        "ip": "192.168.1.100"
+    }
+}</pre>
+            </div>
+        </div>
+
+        <!-- Check License -->
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <span class="endpoint-url">/api/marketplace/licenses/{license_id}/status/</span>
+            <p>Check license status</p>
+        </div>
+    </div>
+
+    <!-- Reviews & Ratings -->
+    <div class="api-section">
+        <h2>Reviews & Ratings</h2>
+
+        <!-- Submit Review -->
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <span class="endpoint-url">/api/marketplace/extensions/{extension_id}/reviews/</span>
+            <p>Submit extension review</p>
+
+            <h6>Request Body:</h6>
+            <div class="response-example">
+                <pre>{
+    "rating": 5,
+    "title": "Excellent outil d'analyse",
+    "content": "Cet outil nous a permis d'améliorer...",
+    "pros": [
+        "Interface intuitive",
+        "Rapports détaillés"
+    ],
+    "cons": [
+        "Un peu cher"
+    ],
+    "version_reviewed": "1.0.0",
+    "usage_duration": 30  // days
+}</pre>
+            </div>
+        </div>
+
+        <!-- List Reviews -->
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <span class="endpoint-url">/api/marketplace/extensions/{extension_id}/reviews/</span>
+            <p>List extension reviews</p>
+        </div>
+    </div>
+
+    <!-- Payment & Billing -->
+    <div class="api-section">
+        <h2>Payment & Billing</h2>
+
+        <!-- Purchase Extension -->
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <span class="endpoint-url">/api/marketplace/purchases/</span>
+            <p>Purchase extension</p>
+
+            <h6>Request Body:</h6>
+            <div class="response-example">
+                <pre>{
+    "extension_id": "ext_123",
+    "plan": "pro_monthly",
+    "quantity": 1,
+    "payment_method": {
+        "type": "card",
+        "token": "pm_card_visa"
+    },
+    "coupon": "WELCOME2024"
+}</pre>
+            </div>
+        </div>
+
+        <!-- List Purchases -->
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <span class="endpoint-url">/api/marketplace/purchases/</span>
+            <p>List extension purchases</p>
+        </div>
+    </div>
+
+    <!-- Updates & Versions -->
+    <div class="api-section">
+        <h2>Updates & Versions</h2>
+
+        <!-- Create Version -->
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <span class="endpoint-url">/api/marketplace/extensions/{extension_id}/versions/</span>
+            <p>Create new version</p>
+
+            <h6>Request Body:</h6>
+            <div class="response-example">
+                <pre>{
+    "version": "1.1.0",
+    "changelog": [
+        {
+            "type": "feature",
+            "description": "Ajout de nouveaux graphiques"
+        },
+        {
+            "type": "fix",
+            "description": "Correction de bugs mineurs"
+        }
+    ],
+    "compatibility": {
+        "min_version": "2.0.0",
+        "max_version": "3.0.0"
+    },
+    "release_notes": "# Version 1.1.0\n\nNouvelles fonctionnalités...",
+    "files": {
+        "source": "https://example.com/v1.1.0.zip",
+        "checksum": "sha256:abc123..."
+    }
+}</pre>
+            </div>
+        </div>
+
+        <!-- Check Updates -->
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <span class="endpoint-url">/api/marketplace/extensions/{extension_id}/updates/</span>
+            <p>Check for updates</p>
+        </div>
+    </div>
+
+    <!-- Marketplace Analytics -->
+    <div class="api-section">
+        <h2>Marketplace Analytics</h2>
+
+        <!-- Get Analytics -->
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <span class="endpoint-url">/api/marketplace/analytics/</span>
+            <p>Get marketplace analytics</p>
+
+            <h6>Response:</h6>
+            <div class="response-example">
+                <pre>{
+    "overview": {
+        "total_extensions": 100,
+        "active_installations": 5000,
+        "total_revenue": 50000  // in cents
+    },
+    "by_type": {
+        "plugin": 60,
+        "theme": 30,
+        "integration": 10
+    },
+    "top_extensions": [
+        {
+            "id": "ext_123",
+            "name": "Analytics Pro",
+            "installations": 1000,
+            "revenue": 10000,
+            "rating": 4.8
+        }
+    ],
+    "revenue": {
+        "monthly": 15000,
+        "by_pricing_model": {
+            "subscription": 12000,
+            "one_time": 3000
+        }
+    },
+    "user_engagement": {
+        "average_rating": 4.5,
+        "review_rate": 0.15,  // percentage
+        "retention_rate": 0.85
+    }
+}</pre>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Add copy functionality for endpoint URLs
+    document.querySelectorAll('.endpoint-url').forEach(element => {
+        element.addEventListener('click', function() {
+            const text = this.textContent;
+            navigator.clipboard.writeText(text).then(() => {
+                const originalText = this.textContent;
+                this.textContent = 'Copied!';
+                setTimeout(() => {
+                    this.textContent = originalText;
+                }, 1000);
+            });
+        });
+    });
+</script>
+{% endblock %}

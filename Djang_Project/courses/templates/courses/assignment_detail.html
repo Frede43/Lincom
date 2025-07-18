@@ -1,0 +1,202 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block title %}{{ assignment.title }} - Community Lab{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <!-- Informations sur le devoir -->
+        <div class="col-md-8">
+            <nav aria-label="breadcrumb" class="mb-4">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a href="{% url 'courses:course_detail' assignment.course.slug %}">
+                            {{ assignment.course.title }}
+                        </a>
+                    </li>
+                    <li class="breadcrumb-item">Devoirs</li>
+                    <li class="breadcrumb-item active">{{ assignment.title }}</li>
+                </ol>
+            </nav>
+
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h1 class="card-title mb-4">{{ assignment.title }}</h1>
+                    
+                    <div class="assignment-meta mb-4">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p class="mb-2">
+                                    <i class="fas fa-calendar-alt me-2"></i>
+                                    Date limite: {{ assignment.due_date|date:"d/m/Y H:i" }}
+                                </p>
+                                <p class="mb-2">
+                                    <i class="fas fa-star me-2"></i>
+                                    Points: {{ assignment.max_score }}
+                                </p>
+                            </div>
+                            <div class="col-md-6">
+                                <p class="mb-2">
+                                    <i class="fas fa-users me-2"></i>
+                                    {{ assignment.submissions.count }} soumissions
+                                </p>
+                                {% if user_submission %}
+                                <p class="mb-2">
+                                    <i class="fas fa-check-circle me-2 
+                                        {% if user_submission.status == 'approved' %}text-success
+                                        {% elif user_submission.status == 'rejected' %}text-danger
+                                        {% else %}text-warning{% endif %}">
+                                    </i>
+                                    Statut: {{ user_submission.get_status_display }}
+                                </p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="assignment-description mb-4">
+                        {{ assignment.description|safe }}
+                    </div>
+
+                    {% if assignment.file %}
+                    <div class="mb-4">
+                        <h5>Fichier attaché</h5>
+                        <a href="{{ assignment.file.url }}" class="btn btn-outline-primary">
+                            <i class="fas fa-download me-2"></i>
+                            Télécharger le fichier
+                        </a>
+                    </div>
+                    {% endif %}
+
+                    {% if not user_submission and not assignment.is_past_due %}
+                    <div class="submission-form">
+                        <h5 class="mb-3">Soumettre votre devoir</h5>
+                        <form method="post" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            {{ submission_form|crispy }}
+                            <button type="submit" class="btn btn-primary">
+                                Soumettre
+                            </button>
+                        </form>
+                    </div>
+                    {% elif user_submission %}
+                    <div class="submission-details">
+                        <h5 class="mb-3">Votre soumission</h5>
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <p class="mb-2">
+                                            <strong>Date de soumission:</strong><br>
+                                            {{ user_submission.submitted_at|date:"d/m/Y H:i" }}
+                                        </p>
+                                        {% if user_submission.score %}
+                                        <p class="mb-2">
+                                            <strong>Score:</strong><br>
+                                            {{ user_submission.score }}/{{ assignment.max_score }}
+                                        </p>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-6">
+                                        <p class="mb-2">
+                                            <strong>Fichier:</strong><br>
+                                            <a href="{{ user_submission.file.url }}" download>
+                                                <i class="fas fa-file me-1"></i>
+                                                Télécharger
+                                            </a>
+                                        </p>
+                                        {% if user_submission.feedback %}
+                                        <p class="mb-2">
+                                            <strong>Feedback:</strong><br>
+                                            {{ user_submission.feedback }}
+                                        </p>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                {% if user_submission.comments %}
+                                <div class="mt-3">
+                                    <strong>Vos commentaires:</strong>
+                                    <p>{{ user_submission.comments }}</p>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Barre latérale -->
+        <div class="col-md-4">
+            <!-- État du devoir -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title mb-3">État du devoir</h5>
+                    {% if assignment.is_past_due %}
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        La date limite est passée
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-clock me-2"></i>
+                        Il reste {{ assignment.time_remaining }} avant la date limite
+                    </div>
+                    {% endif %}
+
+                    <div class="progress mb-3" style="height: 10px;">
+                        <div class="progress-bar" role="progressbar" 
+                             style="width: {{ assignment.completion_rate }}%"
+                             aria-valuenow="{{ assignment.completion_rate }}" 
+                             aria-valuemin="0" aria-valuemax="100">
+                        </div>
+                    </div>
+                    <p class="text-center text-muted">
+                        {{ assignment.completion_rate }}% des étudiants ont soumis
+                    </p>
+                </div>
+            </div>
+
+            <!-- Instructions -->
+            {% if assignment.instructions %}
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title mb-3">Instructions</h5>
+                    {{ assignment.instructions|safe }}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Critères d'évaluation -->
+            {% if assignment.grading_criteria %}
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title mb-3">Critères d'évaluation</h5>
+                    {{ assignment.grading_criteria|safe }}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .assignment-description {
+        font-size: 1.1rem;
+        line-height: 1.8;
+    }
+    .assignment-description img {
+        max-width: 100%;
+        height: auto;
+    }
+    .submission-details .card {
+        background-color: #f8f9fa;
+    }
+</style>
+{% endblock %}

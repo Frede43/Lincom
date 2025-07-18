@@ -1,0 +1,417 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Localization & Internationalization API Documentation | {{ block.super }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .api-section {
+        margin-bottom: 2rem;
+        padding: 1.5rem;
+        border-radius: 0.5rem;
+        background: #fff;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .endpoint {
+        border-left: 4px solid #3498db;
+        padding: 1rem;
+        margin: 1rem 0;
+        background: #f8f9fa;
+    }
+    .method {
+        display: inline-block;
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.25rem;
+        font-weight: bold;
+        margin-right: 0.5rem;
+    }
+    .get { background: #28a745; color: white; }
+    .post { background: #007bff; color: white; }
+    .put { background: #ffc107; color: black; }
+    .delete { background: #dc3545; color: white; }
+    .patch { background: #6c757d; color: white; }
+    .endpoint-url {
+        font-family: monospace;
+        padding: 0.25rem;
+        background: #e9ecef;
+        border-radius: 0.25rem;
+        cursor: pointer;
+    }
+    .locale-note {
+        background: #e8f4f8;
+        border: 1px solid #bee5eb;
+        padding: 1rem;
+        border-radius: 0.25rem;
+        margin-bottom: 1.5rem;
+    }
+    .response-example {
+        background: #272822;
+        color: #f8f8f2;
+        padding: 1rem;
+        border-radius: 0.25rem;
+        margin-top: 1rem;
+        font-family: monospace;
+    }
+    .lang-type {
+        display: inline-block;
+        padding: 0.2rem 0.5rem;
+        border-radius: 0.25rem;
+        font-size: 0.8rem;
+        margin-right: 0.5rem;
+    }
+    .fr { background: #007bff; color: white; }
+    .en { background: #28a745; color: white; }
+    .rn { background: #dc3545; color: white; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h1 class="mb-4">Localization & Internationalization API Documentation</h1>
+
+    <div class="locale-note">
+        <h5><i class="fas fa-globe"></i> Supported Languages</h5>
+        <p class="mb-0">
+            Available languages:
+            <span class="lang-type fr">Français</span>
+            <span class="lang-type en">English</span>
+            <span class="lang-type rn">Kirundi</span>
+        </p>
+    </div>
+
+    <!-- Language Management -->
+    <div class="api-section">
+        <h2>Language Management</h2>
+
+        <!-- Add Language -->
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <span class="endpoint-url">/api/localization/languages/</span>
+            <p>Add new language support</p>
+
+            <h6>Request Body:</h6>
+            <div class="response-example">
+                <pre>{
+    "code": "rn",
+    "name": "Kirundi",
+    "native_name": "Ikirundi",
+    "direction": "ltr",
+    "region": "bi",
+    "fallback": "fr",
+    "enabled": true,
+    "metadata": {
+        "translator": "Jean Ndayishimiye",
+        "last_updated": "2024-01-19T14:00:00Z"
+    }
+}</pre>
+            </div>
+
+            <h6>Response:</h6>
+            <div class="response-example">
+                <pre>{
+    "id": "lang_123",
+    "code": "rn",
+    "name": "Kirundi",
+    "native_name": "Ikirundi",
+    "status": "active",
+    "translation_progress": 0,
+    "created_at": "2024-01-19T14:00:00Z"
+}</pre>
+            </div>
+        </div>
+
+        <!-- List Languages -->
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <span class="endpoint-url">/api/localization/languages/</span>
+            <p>List supported languages</p>
+
+            <h6>Query Parameters:</h6>
+            <table class="table params-table">
+                <thead>
+                    <tr>
+                        <th>Parameter</th>
+                        <th>Type</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>status</td>
+                        <td>string</td>
+                        <td>Filter by status</td>
+                    </tr>
+                    <tr>
+                        <td>region</td>
+                        <td>string</td>
+                        <td>Filter by region</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Translation Management -->
+    <div class="api-section">
+        <h2>Translation Management</h2>
+
+        <!-- Add Translation -->
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <span class="endpoint-url">/api/localization/translations/</span>
+            <p>Add new translations</p>
+
+            <h6>Request Body:</h6>
+            <div class="response-example">
+                <pre>{
+    "language": "rn",
+    "namespace": "common",
+    "translations": {
+        "welcome": "Murakaza neza",
+        "login": "Kwinjira",
+        "signup": "Kwiyandikisha",
+        "dashboard": {
+            "title": "Ikibaho",
+            "summary": "Incamake"
+        }
+    },
+    "metadata": {
+        "version": "1.0",
+        "reviewed": false
+    }
+}</pre>
+            </div>
+        </div>
+
+        <!-- Export Translations -->
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <span class="endpoint-url">/api/localization/translations/export/</span>
+            <p>Export translations</p>
+
+            <h6>Query Parameters:</h6>
+            <table class="table params-table">
+                <thead>
+                    <tr>
+                        <th>Parameter</th>
+                        <th>Type</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>language</td>
+                        <td>string</td>
+                        <td>Language code</td>
+                    </tr>
+                    <tr>
+                        <td>format</td>
+                        <td>string</td>
+                        <td>Export format (json, yaml, po)</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Content Localization -->
+    <div class="api-section">
+        <h2>Content Localization</h2>
+
+        <!-- Localize Content -->
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <span class="endpoint-url">/api/localization/content/</span>
+            <p>Localize content</p>
+
+            <h6>Request Body:</h6>
+            <div class="response-example">
+                <pre>{
+    "content_type": "article",
+    "content_id": "article-123",
+    "language": "rn",
+    "fields": {
+        "title": "Intangamarara",
+        "description": "Ibisobanuro birambuye",
+        "content": "# Intangamarara\nMurakaza neza...",
+        "metadata": {
+            "keywords": ["ubuhinga", "ikoranabuhanga"]
+        }
+    },
+    "status": "draft"
+}</pre>
+            </div>
+        </div>
+
+        <!-- Get Localized Content -->
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <span class="endpoint-url">/api/localization/content/{content_type}/{content_id}/</span>
+            <p>Get localized content</p>
+        </div>
+    </div>
+
+    <!-- Regional Settings -->
+    <div class="api-section">
+        <h2>Regional Settings</h2>
+
+        <!-- Update Settings -->
+        <div class="endpoint">
+            <span class="method patch">PATCH</span>
+            <span class="endpoint-url">/api/localization/settings/</span>
+            <p>Update regional settings</p>
+
+            <h6>Request Body:</h6>
+            <div class="response-example">
+                <pre>{
+    "date_format": "DD/MM/YYYY",
+    "time_format": "HH:mm",
+    "timezone": "Africa/Bujumbura",
+    "currency": {
+        "code": "BIF",
+        "symbol": "FBu",
+        "position": "after"
+    },
+    "number_format": {
+        "decimal_separator": ",",
+        "thousand_separator": ".",
+        "decimals": 2
+    }
+}</pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- Translation Memory -->
+    <div class="api-section">
+        <h2>Translation Memory</h2>
+
+        <!-- Add Translation Memory -->
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <span class="endpoint-url">/api/localization/memory/</span>
+            <p>Add to translation memory</p>
+
+            <h6>Request Body:</h6>
+            <div class="response-example">
+                <pre>{
+    "source_language": "fr",
+    "target_language": "rn",
+    "source_text": "Bienvenue sur notre plateforme",
+    "target_text": "Murakaza neza kuri platform yacu",
+    "context": "welcome_message",
+    "metadata": {
+        "domain": "tech",
+        "quality": 100
+    }
+}</pre>
+            </div>
+        </div>
+
+        <!-- Search Translation Memory -->
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <span class="endpoint-url">/api/localization/memory/search/</span>
+            <p>Search translation memory</p>
+
+            <h6>Query Parameters:</h6>
+            <table class="table params-table">
+                <thead>
+                    <tr>
+                        <th>Parameter</th>
+                        <th>Type</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>q</td>
+                        <td>string</td>
+                        <td>Search query</td>
+                    </tr>
+                    <tr>
+                        <td>source_lang</td>
+                        <td>string</td>
+                        <td>Source language</td>
+                    </tr>
+                    <tr>
+                        <td>target_lang</td>
+                        <td>string</td>
+                        <td>Target language</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Localization Analytics -->
+    <div class="api-section">
+        <h2>Localization Analytics</h2>
+
+        <!-- Get Analytics -->
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <span class="endpoint-url">/api/localization/analytics/</span>
+            <p>Get localization analytics</p>
+
+            <h6>Response:</h6>
+            <div class="response-example">
+                <pre>{
+    "overview": {
+        "total_languages": 3,
+        "total_translations": 5000,
+        "completion_rate": 85  // percentage
+    },
+    "by_language": [
+        {
+            "code": "fr",
+            "translations": 5000,
+            "completion": 100,
+            "last_updated": "2024-01-19T14:00:00Z"
+        },
+        {
+            "code": "rn",
+            "translations": 3500,
+            "completion": 70,
+            "last_updated": "2024-01-19T14:00:00Z"
+        }
+    ],
+    "popular_content": [
+        {
+            "path": "/welcome",
+            "views_by_language": {
+                "fr": 1500,
+                "rn": 800,
+                "en": 500
+            }
+        }
+    ],
+    "translation_memory": {
+        "total_entries": 10000,
+        "usage_rate": 75,  // percentage
+        "quality_score": 92
+    }
+}</pre>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Add copy functionality for endpoint URLs
+    document.querySelectorAll('.endpoint-url').forEach(element => {
+        element.addEventListener('click', function() {
+            const text = this.textContent;
+            navigator.clipboard.writeText(text).then(() => {
+                const originalText = this.textContent;
+                this.textContent = 'Copied!';
+                setTimeout(() => {
+                    this.textContent = originalText;
+                }, 1000);
+            });
+        });
+    });
+</script>
+{% endblock %}

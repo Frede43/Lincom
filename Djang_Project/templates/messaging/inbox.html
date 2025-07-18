@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Messagerie - Community Lab{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Messages</h5>
+                </div>
+                <div class="list-group list-group-flush">
+                    <a href="{% url 'messaging:inbox' %}" class="list-group-item list-group-item-action active">
+                        <i class="fas fa-inbox"></i> Boîte de réception
+                    </a>
+                    <a href="#" class="list-group-item list-group-item-action">
+                        <i class="fas fa-users"></i> Groupes
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-9">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Conversations</h5>
+                    <button class="btn btn-primary btn-sm">
+                        <i class="fas fa-plus"></i> Nouveau message
+                    </button>
+                </div>
+                <div class="list-group list-group-flush">
+                    {% if conversations %}
+                        {% for conversation in conversations %}
+                            <a href="#" class="list-group-item list-group-item-action">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1">
+                                        {% for participant in conversation.participants.all %}
+                                            {% if participant != request.user %}
+                                                {{ participant.get_full_name }}
+                                            {% endif %}
+                                        {% endfor %}
+                                    </h6>
+                                    <small class="text-muted">{{ conversation.last_message_date|timesince }}</small>
+                                </div>
+                                <p class="mb-1">{{ conversation.last_message.content|truncatewords:10 }}</p>
+                            </a>
+                        {% endfor %}
+                    {% else %}
+                        <div class="list-group-item text-center py-4">
+                            <p class="text-muted mb-0">Aucune conversation pour le moment</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

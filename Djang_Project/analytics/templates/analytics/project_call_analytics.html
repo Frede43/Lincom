@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+
+{% block title %}Analytiques des appels à projets - Community Lab{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <h1>Analytiques des appels à projets</h1>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'analytics:dashboard' %}">Tableau de bord</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Appels à projets</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <div class="row">
+        {% for metric in metrics %}
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">{{ metric.project_call.title }}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="text-center mb-3">
+                                <h6 class="text-muted">Soumissions totales</h6>
+                                <h2>{{ metric.total_submissions }}</h2>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-center mb-3">
+                                <h6 class="text-muted">Soumissions acceptées</h6>
+                                <h2>{{ metric.accepted_submissions }}</h2>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-center mb-3">
+                                <h6 class="text-muted">Budget moyen</h6>
+                                <h2>{{ metric.average_budget|floatformat:0 }} BIF</h2>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <h6>Taux d'acceptation</h6>
+                        <div class="progress" style="height: 10px;">
+                            {% if metric.total_submissions > 0 %}
+                            <div class="progress-bar bg-success" role="progressbar" 
+                                 style="width: {% widthratio metric.accepted_submissions metric.total_submissions 100 %}%"
+                                 aria-valuenow="{% widthratio metric.accepted_submissions metric.total_submissions 100 %}" 
+                                 aria-valuemin="0" aria-valuemax="100">
+                            </div>
+                            {% else %}
+                            <div class="progress-bar" role="progressbar" style="width: 0%"
+                                 aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <small class="text-muted">Dernière mise à jour : {{ metric.last_updated|date:"d/m/Y H:i" }}</small>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <a href="{% url 'organizations:project_call_detail' metric.project_call.id %}" class="btn btn-sm btn-primary">
+                        <i class="fas fa-eye"></i> Voir l'appel à projets
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="alert alert-info">
+                Aucune donnée analytique disponible pour le moment.
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

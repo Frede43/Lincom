@@ -1,0 +1,56 @@
+{% extends "organizations/base_organizations.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %}Soumettre un Projet | {{ block.super }}{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'organizations:project_call_list' %}">Appels à Projets</a></li>
+<li class="breadcrumb-item"><a href="{% url 'organizations:project_call_detail' project_call.pk %}">{{ project_call.title }}</a></li>
+<li class="breadcrumb-item active">Soumettre un Projet</li>
+{% endblock %}
+
+{% block organization_content %}
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        <div class="card">
+            <div class="card-body">
+                <h2 class="card-title mb-4">Soumettre un Projet</h2>
+                
+                <!-- Informations sur l'appel à projets -->
+                <div class="alert alert-info mb-4">
+                    <h5 class="alert-heading">Informations sur l'appel à projets</h5>
+                    <p class="mb-2"><strong>Titre:</strong> {{ project_call.title }}</p>
+                    <p class="mb-2"><strong>Budget maximum:</strong> {{ project_call.budget }} FCFA</p>
+                    <p class="mb-2"><strong>Date limite:</strong> {{ project_call.end_date|date:"d F Y" }}</p>
+                    <hr>
+                    <p class="mb-0"><strong>Exigences:</strong></p>
+                    <p class="mb-0">{{ project_call.requirements|linebreaks }}</p>
+                </div>
+
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <!-- Startup -->
+                    <div class="mb-4">
+                        <h5>Startup</h5>
+                        <p class="mb-0">{{ user.startup.name }}</p>
+                        <small class="text-muted">Vous soumettez ce projet en tant que membre de cette startup.</small>
+                    </div>
+
+                    <!-- Formulaire -->
+                    {{ form|crispy }}
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            Soumettre le projet
+                        </button>
+                        <a href="{% url 'organizations:project_call_detail' project_call.pk %}" class="btn btn-outline-secondary">
+                            Annuler
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

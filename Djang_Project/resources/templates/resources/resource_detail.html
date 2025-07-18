@@ -1,0 +1,295 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ resource.title }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- En-tête de la ressource -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1>{{ resource.title }}</h1>
+            <div class="d-flex flex-wrap gap-3 mb-3">
+                <span class="badge bg-primary">
+                    <i class="fas fa-folder"></i> {{ resource.category.name }}
+                </span>
+                <span class="badge bg-info">
+                    <i class="fas fa-file-alt"></i> {{ resource.get_resource_type_display }}
+                </span>
+                {% if resource.is_featured %}
+                <span class="badge bg-warning">
+                    <i class="fas fa-star"></i> Mis en avant
+                </span>
+                {% endif %}
+            </div>
+            <p class="lead">{{ resource.description }}</p>
+        </div>
+        <div class="col-md-4 text-md-end">
+            {% if user.is_authenticated %}
+                {% if user == resource.author %}
+                <a href="{% url 'resources:resource-update' resource.id %}" class="btn btn-outline-primary me-2">
+                    <i class="fas fa-edit"></i> Modifier
+                </a>
+                <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                    <i class="fas fa-trash"></i> Supprimer
+                </button>
+                {% else %}
+                <button class="btn {% if is_bookmarked %}btn-primary{% else %}btn-outline-primary{% endif %} bookmark-btn"
+                    data-resource-id="{{ resource.id }}">
+                    <i class="fas fa-bookmark{% if not is_bookmarked %}-o{% endif %}"></i>
+                    {% if is_bookmarked %}Retiré des favoris{% else %}Ajouter aux favoris{% endif %}
+                </button>
+                {% endif %}
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Contenu principal -->
+    <div class="row">
+        <div class="col-md-8">
+            <!-- Accès à la ressource -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Accéder à la ressource</h5>
+                    {% if resource.file %}
+                    <p class="card-text">
+                        <i class="fas fa-file"></i> {{ resource.file.name|cut:"resources/" }}
+                        <span class="text-muted">({{ resource.file.size|filesizeformat }})</span>
+                    </p>
+                    <a href="{% url 'resources:resource-download' resource.id %}" class="btn btn-primary">
+                        <i class="fas fa-download"></i> Télécharger
+                    </a>
+                    {% elif resource.url %}
+                    <p class="card-text">
+                        <i class="fas fa-link"></i> <a href="{{ resource.url }}" target="_blank">{{ resource.url }}</a>
+                    </p>
+                    <a href="{{ resource.url }}" target="_blank" class="btn btn-primary">
+                        <i class="fas fa-external-link-alt"></i> Visiter le lien
+                    </a>
+                    {% endif %}
+                    <p class="card-text mt-3">
+                        <small class="text-muted">
+                            <i class="fas fa-download"></i> {{ resource.download_count }} téléchargements
+                        </small>
+                    </p>
+                </div>
+            </div>
+
+            <!-- Tags -->
+            {% if resource.tags.exists %}
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Tags</h5>
+                    {% for tag in resource.tags.all %}
+                    <a href="{% url 'resources:resource-list' %}?tag={{ tag.slug }}" class="badge bg-secondary text-decoration-none me-1">
+                        {{ tag.name }}
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Commentaires -->
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Commentaires</h5>
+                    {% if user.is_authenticated %}
+                    <form method="post" action="{% url 'resources:resource-comment' resource.id %}" class="mb-4">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="comment" class="form-label">Votre commentaire</label>
+                            <textarea name="content" id="comment" class="form-control" rows="3" required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Commenter</button>
+                    </form>
+                    {% endif %}
+
+                    {% for comment in resource.comments.all %}
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <h6 class="card-subtitle mb-2 text-muted">
+                                    {{ comment.user.get_full_name|default:comment.user.username }}
+                                </h6>
+                                <small class="text-muted">{{ comment.created_at|date:"d/m/Y H:i" }}</small>
+                            </div>
+                            <p class="card-text">{{ comment.content }}</p>
+                            {% if comment.replies.exists %}
+                            <div class="ms-4 mt-3">
+                                {% for reply in comment.replies.all %}
+                                <div class="card mb-2">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between">
+                                            <h6 class="card-subtitle mb-2 text-muted">
+                                                {{ reply.user.get_full_name|default:reply.user.username }}
+                                            </h6>
+                                            <small class="text-muted">{{ reply.created_at|date:"d/m/Y H:i" }}</small>
+                                        </div>
+                                        <p class="card-text">{{ reply.content }}</p>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                            {% if user.is_authenticated %}
+                            <button class="btn btn-link btn-sm reply-btn" data-comment-id="{{ comment.id }}">
+                                Répondre
+                            </button>
+                            <form method="post" action="{% url 'resources:resource-comment' resource.id %}"
+                                class="reply-form mt-2 d-none" data-comment-id="{{ comment.id }}">
+                                {% csrf_token %}
+                                <input type="hidden" name="parent" value="{{ comment.id }}">
+                                <div class="mb-2">
+                                    <textarea name="content" class="form-control form-control-sm" rows="2" required></textarea>
+                                </div>
+                                <button type="submit" class="btn btn-primary btn-sm">Envoyer</button>
+                                <button type="button" class="btn btn-outline-secondary btn-sm cancel-reply">Annuler</button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted">Aucun commentaire pour le moment.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <!-- Informations sur l'auteur -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">À propos de l'auteur</h5>
+                    <div class="d-flex align-items-center mb-3">
+                        {% if resource.author.profile.profile_picture %}
+                        <img src="{{ resource.author.profile.profile_picture.url }}" class="rounded-circle me-3"
+                            width="50" height="50" alt="{{ resource.author.get_full_name }}">
+                        {% endif %}
+                        <div>
+                            <h6 class="mb-0">{{ resource.author.get_full_name|default:resource.author.username }}</h6>
+                            <p class="text-muted mb-0">{{ resource.author.profile.get_user_type_display }}</p>
+                        </div>
+                    </div>
+                    <p class="card-text">
+                        <small class="text-muted">
+                            <i class="fas fa-calendar"></i> Publié le {{ resource.created_at|date:"d/m/Y" }}
+                        </small>
+                    </p>
+                </div>
+            </div>
+
+            <!-- Ressources similaires -->
+            {% if similar_resources %}
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Ressources similaires</h5>
+                    {% for similar in similar_resources %}
+                    <div class="card mb-2">
+                        <div class="card-body">
+                            <h6 class="card-title">
+                                <a href="{% url 'resources:resource-detail' similar.id %}" class="text-decoration-none">
+                                    {{ similar.title }}
+                                </a>
+                            </h6>
+                            <p class="card-text">
+                                <small class="text-muted">
+                                    <i class="fas fa-folder"></i> {{ similar.category.name }}
+                                </small>
+                            </p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Modal de confirmation de suppression -->
+{% if user == resource.author %}
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">Confirmer la suppression</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Êtes-vous sûr de vouloir supprimer cette ressource ? Cette action est irréversible.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <form method="post" action="{% url 'resources:resource-delete' resource.id %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">Supprimer</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Gestion des favoris
+    const bookmarkBtn = document.querySelector('.bookmark-btn');
+    if (bookmarkBtn) {
+        bookmarkBtn.addEventListener('click', function() {
+            const resourceId = this.dataset.resourceId;
+            fetch(`/api/v1/resources/${resourceId}/bookmark/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                const icon = this.querySelector('i');
+                if (data.status === 'bookmark added') {
+                    icon.classList.remove('fa-bookmark-o');
+                    icon.classList.add('fa-bookmark');
+                    this.classList.remove('btn-outline-primary');
+                    this.classList.add('btn-primary');
+                    this.textContent = ' Retirer des favoris';
+                    this.prepend(icon);
+                } else {
+                    icon.classList.remove('fa-bookmark');
+                    icon.classList.add('fa-bookmark-o');
+                    this.classList.remove('btn-primary');
+                    this.classList.add('btn-outline-primary');
+                    this.textContent = ' Ajouter aux favoris';
+                    this.prepend(icon);
+                }
+            });
+        });
+    }
+
+    // Gestion des réponses aux commentaires
+    const replyButtons = document.querySelectorAll('.reply-btn');
+    const replyForms = document.querySelectorAll('.reply-form');
+    const cancelButtons = document.querySelectorAll('.cancel-reply');
+
+    replyButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const commentId = this.dataset.commentId;
+            const form = document.querySelector(`.reply-form[data-comment-id="${commentId}"]`);
+            form.classList.remove('d-none');
+            this.classList.add('d-none');
+        });
+    });
+
+    cancelButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const form = this.closest('.reply-form');
+            const commentId = form.dataset.commentId;
+            const replyBtn = document.querySelector(`.reply-btn[data-comment-id="${commentId}"]`);
+            form.classList.add('d-none');
+            replyBtn.classList.remove('d-none');
+        });
+    });
+});
+</script>
+{% endblock %}
+{% endblock %}

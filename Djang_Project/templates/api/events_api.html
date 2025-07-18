@@ -1,0 +1,347 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Events & Notifications API Documentation | {{ block.super }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .api-section {
+        margin-bottom: 2rem;
+        padding: 1.5rem;
+        border-radius: 0.5rem;
+        background: #fff;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .endpoint {
+        border-left: 4px solid #3498db;
+        padding: 1rem;
+        margin: 1rem 0;
+        background: #f8f9fa;
+    }
+    .method {
+        display: inline-block;
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.25rem;
+        font-weight: bold;
+        margin-right: 0.5rem;
+    }
+    .get { background: #28a745; color: white; }
+    .post { background: #007bff; color: white; }
+    .put { background: #ffc107; color: black; }
+    .delete { background: #dc3545; color: white; }
+    .endpoint-url {
+        font-family: monospace;
+        padding: 0.25rem;
+        background: #e9ecef;
+        border-radius: 0.25rem;
+        cursor: pointer;
+    }
+    .websocket-note {
+        background: #d1ecf1;
+        border: 1px solid #bee5eb;
+        padding: 1rem;
+        border-radius: 0.25rem;
+        margin-bottom: 1.5rem;
+    }
+    .response-example {
+        background: #272822;
+        color: #f8f8f2;
+        padding: 1rem;
+        border-radius: 0.25rem;
+        margin-top: 1rem;
+        font-family: monospace;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h1 class="mb-4">Events & Notifications API Documentation</h1>
+
+    <div class="websocket-note">
+        <h5><i class="fas fa-plug"></i> Real-time Updates</h5>
+        <p class="mb-0">Real-time notifications are delivered via WebSocket connection. Connect to: <code>ws://api.example.org/ws/notifications/</code></p>
+    </div>
+
+    <!-- Events -->
+    <div class="api-section">
+        <h2>Events</h2>
+
+        <!-- List Events -->
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <span class="endpoint-url">/api/events/</span>
+            <p>Retrieve list of events</p>
+
+            <h6>Query Parameters:</h6>
+            <table class="table params-table">
+                <thead>
+                    <tr>
+                        <th>Parameter</th>
+                        <th>Type</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>type</td>
+                        <td>string</td>
+                        <td>Filter by event type (competition, workshop, meetup)</td>
+                    </tr>
+                    <tr>
+                        <td>status</td>
+                        <td>string</td>
+                        <td>Filter by status (upcoming, ongoing, completed)</td>
+                    </tr>
+                    <tr>
+                        <td>date_range</td>
+                        <td>string</td>
+                        <td>Filter by date range (today, week, month)</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h6>Response:</h6>
+            <div class="response-example">
+                <pre>{
+    "count": 25,
+    "next": "http://api.example.org/events/?page=2",
+    "previous": null,
+    "results": [
+        {
+            "id": 1,
+            "title": "Tech Startup Meetup",
+            "description": "Monthly meetup for tech startups",
+            "type": "meetup",
+            "start_date": "2024-01-20T14:00:00Z",
+            "end_date": "2024-01-20T17:00:00Z",
+            "location": "Bujumbura Innovation Hub",
+            "max_participants": 50,
+            "current_participants": 35,
+            "status": "upcoming",
+            "organizer": {
+                "id": 1,
+                "name": "Bujumbura Tech Community"
+            }
+        }
+    ]
+}</pre>
+            </div>
+        </div>
+
+        <!-- Create Event -->
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <span class="endpoint-url">/api/events/</span>
+            <p>Create a new event</p>
+
+            <h6>Request Body:</h6>
+            <div class="response-example">
+                <pre>{
+    "title": "Tech Startup Meetup",
+    "description": "Monthly meetup for tech startups",
+    "type": "meetup",
+    "start_date": "2024-01-20T14:00:00Z",
+    "end_date": "2024-01-20T17:00:00Z",
+    "location": "Bujumbura Innovation Hub",
+    "max_participants": 50
+}</pre>
+            </div>
+        </div>
+
+        <!-- Event Registration -->
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <span class="endpoint-url">/api/events/{id}/register/</span>
+            <p>Register for an event</p>
+
+            <h6>Request Body:</h6>
+            <div class="response-example">
+                <pre>{
+    "attendee_name": "John Doe",
+    "email": "john@example.com",
+    "phone": "+25779123456",
+    "additional_info": "Any dietary requirements or special needs"
+}</pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notifications -->
+    <div class="api-section">
+        <h2>Notifications</h2>
+
+        <!-- List Notifications -->
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <span class="endpoint-url">/api/notifications/</span>
+            <p>Retrieve user notifications</p>
+
+            <h6>Query Parameters:</h6>
+            <table class="table params-table">
+                <thead>
+                    <tr>
+                        <th>Parameter</th>
+                        <th>Type</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>read</td>
+                        <td>boolean</td>
+                        <td>Filter by read status</td>
+                    </tr>
+                    <tr>
+                        <td>type</td>
+                        <td>string</td>
+                        <td>Filter by notification type</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h6>Response:</h6>
+            <div class="response-example">
+                <pre>{
+    "unread_count": 5,
+    "notifications": [
+        {
+            "id": 1,
+            "type": "event_reminder",
+            "title": "Upcoming Event: Tech Startup Meetup",
+            "message": "The event starts in 24 hours",
+            "created_at": "2024-01-19T14:00:00Z",
+            "read": false,
+            "action_url": "/events/1"
+        }
+    ]
+}</pre>
+            </div>
+        </div>
+
+        <!-- Mark as Read -->
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <span class="endpoint-url">/api/notifications/{id}/mark-read/</span>
+            <p>Mark a notification as read</p>
+        </div>
+
+        <!-- Mark All as Read -->
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <span class="endpoint-url">/api/notifications/mark-all-read/</span>
+            <p>Mark all notifications as read</p>
+        </div>
+    </div>
+
+    <!-- Notification Preferences -->
+    <div class="api-section">
+        <h2>Notification Preferences</h2>
+
+        <!-- Get Preferences -->
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <span class="endpoint-url">/api/notifications/preferences/</span>
+            <p>Get user notification preferences</p>
+
+            <h6>Response:</h6>
+            <div class="response-example">
+                <pre>{
+    "email_notifications": true,
+    "push_notifications": true,
+    "sms_notifications": false,
+    "preferences": {
+        "event_reminders": true,
+        "application_updates": true,
+        "competition_announcements": true,
+        "project_updates": true
+    }
+}</pre>
+            </div>
+        </div>
+
+        <!-- Update Preferences -->
+        <div class="endpoint">
+            <span class="method put">PUT</span>
+            <span class="endpoint-url">/api/notifications/preferences/</span>
+            <p>Update notification preferences</p>
+
+            <h6>Request Body:</h6>
+            <div class="response-example">
+                <pre>{
+    "email_notifications": true,
+    "push_notifications": true,
+    "sms_notifications": false,
+    "preferences": {
+        "event_reminders": true,
+        "application_updates": true,
+        "competition_announcements": true,
+        "project_updates": true
+    }
+}</pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- WebSocket Events -->
+    <div class="api-section">
+        <h2>WebSocket Events</h2>
+
+        <div class="endpoint">
+            <h5>Event Types</h5>
+            <div class="response-example">
+                <pre>{
+    // New Notification
+    {
+        "type": "notification",
+        "data": {
+            "id": 1,
+            "title": "New Event Registration",
+            "message": "Someone registered for your event",
+            "created_at": "2024-01-19T14:00:00Z"
+        }
+    }
+
+    // Event Update
+    {
+        "type": "event_update",
+        "data": {
+            "event_id": 1,
+            "update_type": "participant_joined",
+            "participants_count": 36
+        }
+    }
+
+    // Status Update
+    {
+        "type": "status_update",
+        "data": {
+            "type": "application_status",
+            "status": "approved",
+            "message": "Your application has been approved"
+        }
+    }
+}</pre>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Add copy functionality for endpoint URLs
+    document.querySelectorAll('.endpoint-url').forEach(element => {
+        element.addEventListener('click', function() {
+            const text = this.textContent;
+            navigator.clipboard.writeText(text).then(() => {
+                const originalText = this.textContent;
+                this.textContent = 'Copied!';
+                setTimeout(() => {
+                    this.textContent = originalText;
+                }, 1000);
+            });
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,320 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Media & Files API Documentation | {{ block.super }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .api-section {
+        margin-bottom: 2rem;
+        padding: 1.5rem;
+        border-radius: 0.5rem;
+        background: #fff;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .endpoint {
+        border-left: 4px solid #3498db;
+        padding: 1rem;
+        margin: 1rem 0;
+        background: #f8f9fa;
+    }
+    .method {
+        display: inline-block;
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.25rem;
+        font-weight: bold;
+        margin-right: 0.5rem;
+    }
+    .get { background: #28a745; color: white; }
+    .post { background: #007bff; color: white; }
+    .put { background: #ffc107; color: black; }
+    .delete { background: #dc3545; color: white; }
+    .endpoint-url {
+        font-family: monospace;
+        padding: 0.25rem;
+        background: #e9ecef;
+        border-radius: 0.25rem;
+        cursor: pointer;
+    }
+    .file-note {
+        background: #e8f4f8;
+        border: 1px solid #bee5eb;
+        padding: 1rem;
+        border-radius: 0.25rem;
+        margin-bottom: 1.5rem;
+    }
+    .response-example {
+        background: #272822;
+        color: #f8f8f2;
+        padding: 1rem;
+        border-radius: 0.25rem;
+        margin-top: 1rem;
+        font-family: monospace;
+    }
+    .file-type {
+        display: inline-block;
+        padding: 0.2rem 0.5rem;
+        border-radius: 0.25rem;
+        font-size: 0.8rem;
+        margin-right: 0.5rem;
+    }
+    .image { background: #d4edda; color: #155724; }
+    .document { background: #cce5ff; color: #004085; }
+    .video { background: #f8d7da; color: #721c24; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h1 class="mb-4">Media & Files API Documentation</h1>
+
+    <div class="file-note">
+        <h5><i class="fas fa-file"></i> File Upload Limits</h5>
+        <ul class="mb-0">
+            <li>Maximum file size: 10MB (images), 50MB (documents), 100MB (videos)</li>
+            <li>Supported formats:
+                <span class="file-type image">Images: jpg, jpeg, png, gif</span>
+                <span class="file-type document">Documents: pdf, doc, docx, ppt, pptx</span>
+                <span class="file-type video">Videos: mp4, avi, mov</span>
+            </li>
+        </ul>
+    </div>
+
+    <!-- File Upload -->
+    <div class="api-section">
+        <h2>File Upload</h2>
+
+        <!-- Upload File -->
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <span class="endpoint-url">/api/media/upload/</span>
+            <p>Upload a new file</p>
+
+            <h6>Request Body (multipart/form-data):</h6>
+            <table class="table params-table">
+                <thead>
+                    <tr>
+                        <th>Parameter</th>
+                        <th>Type</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>file</td>
+                        <td>file</td>
+                        <td>The file to upload</td>
+                    </tr>
+                    <tr>
+                        <td>type</td>
+                        <td>string</td>
+                        <td>File type (profile_picture, document, project_image)</td>
+                    </tr>
+                    <tr>
+                        <td>description</td>
+                        <td>string</td>
+                        <td>Optional description of the file</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h6>Response:</h6>
+            <div class="response-example">
+                <pre>{
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "file_name": "presentation.pdf",
+    "file_type": "application/pdf",
+    "file_size": 1048576,
+    "url": "https://storage.example.org/files/presentation.pdf",
+    "thumbnail_url": "https://storage.example.org/thumbnails/presentation.jpg",
+    "uploaded_at": "2024-01-19T14:00:00Z"
+}</pre>
+            </div>
+        </div>
+
+        <!-- Bulk Upload -->
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <span class="endpoint-url">/api/media/bulk-upload/</span>
+            <p>Upload multiple files at once</p>
+
+            <h6>Request Body (multipart/form-data):</h6>
+            <div class="response-example">
+                <pre>{
+    "files[]": [file1, file2, file3],
+    "type": "project_images",
+    "descriptions[]": ["Image 1", "Image 2", "Image 3"]
+}</pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- File Management -->
+    <div class="api-section">
+        <h2>File Management</h2>
+
+        <!-- List Files -->
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <span class="endpoint-url">/api/media/files/</span>
+            <p>List all files</p>
+
+            <h6>Query Parameters:</h6>
+            <table class="table params-table">
+                <thead>
+                    <tr>
+                        <th>Parameter</th>
+                        <th>Type</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>type</td>
+                        <td>string</td>
+                        <td>Filter by file type</td>
+                    </tr>
+                    <tr>
+                        <td>date_range</td>
+                        <td>string</td>
+                        <td>Filter by upload date</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h6>Response:</h6>
+            <div class="response-example">
+                <pre>{
+    "count": 25,
+    "next": "http://api.example.org/media/files/?page=2",
+    "previous": null,
+    "results": [
+        {
+            "id": "550e8400-e29b-41d4-a716-446655440000",
+            "file_name": "presentation.pdf",
+            "file_type": "application/pdf",
+            "file_size": 1048576,
+            "url": "https://storage.example.org/files/presentation.pdf",
+            "thumbnail_url": "https://storage.example.org/thumbnails/presentation.jpg",
+            "uploaded_at": "2024-01-19T14:00:00Z"
+        }
+    ]
+}</pre>
+            </div>
+        </div>
+
+        <!-- Update File -->
+        <div class="endpoint">
+            <span class="method put">PUT</span>
+            <span class="endpoint-url">/api/media/files/{id}/</span>
+            <p>Update file metadata</p>
+
+            <h6>Request Body:</h6>
+            <div class="response-example">
+                <pre>{
+    "description": "Updated description",
+    "tags": ["presentation", "project"]
+}</pre>
+            </div>
+        </div>
+
+        <!-- Delete File -->
+        <div class="endpoint">
+            <span class="method delete">DELETE</span>
+            <span class="endpoint-url">/api/media/files/{id}/</span>
+            <p>Delete a file</p>
+        </div>
+    </div>
+
+    <!-- Image Processing -->
+    <div class="api-section">
+        <h2>Image Processing</h2>
+
+        <!-- Resize Image -->
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <span class="endpoint-url">/api/media/images/{id}/resize/</span>
+            <p>Resize an image</p>
+
+            <h6>Request Body:</h6>
+            <div class="response-example">
+                <pre>{
+    "width": 800,
+    "height": 600,
+    "maintain_aspect_ratio": true
+}</pre>
+            </div>
+        </div>
+
+        <!-- Generate Thumbnail -->
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <span class="endpoint-url">/api/media/images/{id}/thumbnail/</span>
+            <p>Generate a thumbnail</p>
+
+            <h6>Request Body:</h6>
+            <div class="response-example">
+                <pre>{
+    "size": 150,
+    "format": "jpg"
+}</pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- File Sharing -->
+    <div class="api-section">
+        <h2>File Sharing</h2>
+
+        <!-- Generate Share Link -->
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <span class="endpoint-url">/api/media/files/{id}/share/</span>
+            <p>Generate a shareable link</p>
+
+            <h6>Request Body:</h6>
+            <div class="response-example">
+                <pre>{
+    "expires_in": 86400,  // 24 hours
+    "max_downloads": 10,  // optional
+    "password": "optional_password"  // optional
+}</pre>
+            </div>
+
+            <h6>Response:</h6>
+            <div class="response-example">
+                <pre>{
+    "share_url": "https://share.example.org/f/abc123",
+    "expires_at": "2024-01-20T14:00:00Z",
+    "downloads_remaining": 10
+}</pre>
+            </div>
+        </div>
+
+        <!-- List Shared Files -->
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <span class="endpoint-url">/api/media/shared/</span>
+            <p>List all shared files</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Add copy functionality for endpoint URLs
+    document.querySelectorAll('.endpoint-url').forEach(element => {
+        element.addEventListener('click', function() {
+            const text = this.textContent;
+            navigator.clipboard.writeText(text).then(() => {
+                const originalText = this.textContent;
+                this.textContent = 'Copied!';
+                setTimeout(() => {
+                    this.textContent = originalText;
+                }, 1000);
+            });
+        });
+    });
+</script>
+{% endblock %}

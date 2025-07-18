@@ -1,0 +1,151 @@
+{% extends "organizations/base_organizations.html" %}
+
+{% block title %}Appels à Projets | {{ block.super }}{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">Appels à Projets</li>
+{% endblock %}
+
+{% block organization_content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h1>Appels à Projets</h1>
+    </div>
+    <div class="col-md-4 text-end">
+        {% if user.is_authenticated and user.is_staff %}
+        <a href="{% url 'organizations:project_call_create' %}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Créer un Appel à Projets
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Filtres -->
+<div class="row mb-4">
+    <div class="col-md-12">
+        <form method="get" class="card card-body">
+            <div class="row">
+                <div class="col-md-4">
+                    <label for="status" class="form-label">Statut</label>
+                    <select name="status" id="status" class="form-select">
+                        <option value="">Tous</option>
+                        <option value="published" {% if selected_status == 'published' %}selected{% endif %}>Publié</option>
+                        <option value="draft" {% if selected_status == 'draft' %}selected{% endif %}>Brouillon</option>
+                        <option value="closed" {% if selected_status == 'closed' %}selected{% endif %}>Fermé</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label for="budget_min" class="form-label">Budget minimum</label>
+                    <input type="number" name="budget_min" id="budget_min" class="form-control" 
+                           value="{{ selected_budget_min }}" placeholder="Budget minimum">
+                </div>
+                <div class="col-md-4 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">Filtrer</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Liste des appels à projets -->
+<div class="row">
+    {% for project_call in project_calls %}
+    <div class="col-md-6 mb-4">
+        <div class="card project-call-card">
+            <div class="card-body">
+                <span class="status-badge badge {% if project_call.status == 'published' %}bg-success{% elif project_call.status == 'draft' %}bg-warning{% elif project_call.status == 'closed' %}bg-secondary{% else %}bg-danger{% endif %}">
+                    {{ project_call.get_status_display }}
+                </span>
+                <h5 class="card-title mb-3">{{ project_call.title }}</h5>
+                <p class="card-text text-muted">{{ project_call.description|truncatewords:30 }}</p>
+                
+                <div class="mb-3">
+                    <div class="row">
+                        <div class="col-6">
+                            <small class="text-muted">
+                                <i class="fas fa-calendar"></i> Début:
+                            </small><br>
+                            {{ project_call.start_date|date:"d M Y" }}
+                        </div>
+                        <div class="col-6">
+                            <small class="text-muted">
+                                <i class="fas fa-flag-checkered"></i> Fin:
+                            </small><br>
+                            {{ project_call.end_date|date:"d M Y" }}
+                        </div>
+                    </div>
+                </div>
+                
+                {% if project_call.budget %}
+                <div class="mb-3">
+                    <small class="text-muted">
+                        <i class="fas fa-money-bill-wave"></i> Budget:
+                    </small><br>
+                    <span class="prize-amount">{{ project_call.budget }} FCFA</span>
+                </div>
+                {% endif %}
+                
+                <div class="mb-3">
+                    <small class="text-muted">
+                        <i class="fas fa-file-alt"></i> Soumissions:
+                    </small><br>
+                    <span class="participant-count">
+                        {{ project_call.submissions.count }}
+                    </span>
+                </div>
+                
+                <div class="d-grid gap-2">
+                    <a href="{% url 'organizations:project_call_detail' project_call.pk %}" class="btn btn-outline-primary">
+                        En savoir plus
+                    </a>
+                    {% if user.is_authenticated and not user.is_staff %}
+                        {% if user.startup and not project_call.submissions.filter(startup=user.startup).exists and project_call.status == 'published' %}
+                        <a href="{% url 'organizations:project_submission_create' project_call.pk %}" class="btn btn-success">
+                            Soumettre un projet
+                        </a>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="alert alert-info">
+            Aucun appel à projets ne correspond à vos critères de recherche.
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Pagination -->
+{% if is_paginated %}
+<nav aria-label="Page navigation" class="mt-4">
+    <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}
+        <li class="page-item">
+            <a class="page-link" href="?page=1">&laquo; Première</a>
+        </li>
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Précédente</a>
+        </li>
+        {% endif %}
+
+        <li class="page-item disabled">
+            <span class="page-link">
+                Page {{ page_obj.number }} sur {{ page_obj.paginator.num_pages }}
+            </span>
+        </li>
+
+        {% if page_obj.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.next_page_number }}">Suivante</a>
+        </li>
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Dernière &raquo;</a>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}

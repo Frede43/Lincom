@@ -1,0 +1,246 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Devoirs - {{ course.title }} - Community Lab{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-12">
+            <nav aria-label="breadcrumb" class="mb-4">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a href="{% url 'courses:course_detail' course.slug %}">
+                            {{ course.title }}
+                        </a>
+                    </li>
+                    <li class="breadcrumb-item active">Devoirs</li>
+                </ol>
+            </nav>
+
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1>Devoirs du cours</h1>
+                {% if is_instructor %}
+                <a href="{% url 'courses:assignment_create' course.slug %}" 
+                   class="btn btn-primary">
+                    <i class="fas fa-plus me-2"></i>
+                    Créer un devoir
+                </a>
+                {% endif %}
+            </div>
+
+            <!-- Filtres -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <form method="get" class="row g-3">
+                        <div class="col-md-4">
+                            <label for="status" class="form-label">Statut</label>
+                            <select name="status" id="status" class="form-select">
+                                <option value="">Tous les statuts</option>
+                                <option value="active" 
+                                        {% if status == 'active' %}selected{% endif %}>
+                                    En cours
+                                </option>
+                                <option value="past_due" 
+                                        {% if status == 'past_due' %}selected{% endif %}>
+                                    Date limite dépassée
+                                </option>
+                                <option value="upcoming" 
+                                        {% if status == 'upcoming' %}selected{% endif %}>
+                                    À venir
+                                </option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="module" class="form-label">Module</label>
+                            <select name="module" id="module" class="form-select">
+                                <option value="">Tous les modules</option>
+                                {% for module in course.modules.all %}
+                                <option value="{{ module.id }}" 
+                                        {% if module.id|stringformat:"s" == current_module %}selected{% endif %}>
+                                    {{ module.title }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary w-100">
+                                Appliquer les filtres
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Liste des devoirs -->
+            <div class="row">
+                {% for assignment in assignments %}
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <h5 class="card-title mb-0">{{ assignment.title }}</h5>
+                                <span class="badge 
+                                    {% if assignment.is_past_due %}bg-danger
+                                    {% elif assignment.is_active %}bg-success
+                                    {% else %}bg-info{% endif %}">
+                                    {% if assignment.is_past_due %}
+                                        Date limite dépassée
+                                    {% elif assignment.is_active %}
+                                        En cours
+                                    {% else %}
+                                        À venir
+                                    {% endif %}
+                                </span>
+                            </div>
+
+                            <p class="card-text text-muted mb-3">
+                                {{ assignment.description|truncatewords:30 }}
+                            </p>
+
+                            <div class="row mb-3">
+                                <div class="col-6">
+                                    <small class="text-muted d-block">
+                                        <i class="fas fa-calendar-alt me-1"></i>
+                                        Date limite:
+                                    </small>
+                                    <strong>{{ assignment.due_date|date:"d/m/Y H:i" }}</strong>
+                                </div>
+                                <div class="col-6">
+                                    <small class="text-muted d-block">
+                                        <i class="fas fa-users me-1"></i>
+                                        Soumissions:
+                                    </small>
+                                    <strong>{{ assignment.submissions.count }}/{{ course.enrolled_students.count }}</strong>
+                                </div>
+                            </div>
+
+                            <div class="progress mb-3" style="height: 5px;">
+                                <div class="progress-bar" role="progressbar" 
+                                     style="width: {{ assignment.completion_rate }}%"
+                                     aria-valuenow="{{ assignment.completion_rate }}" 
+                                     aria-valuemin="0" aria-valuemax="100">
+                                </div>
+                            </div>
+
+                            <div class="d-flex justify-content-between align-items-center">
+                                <a href="{% url 'courses:assignment_detail' course.slug assignment.id %}" 
+                                   class="btn btn-outline-primary">
+                                    Voir les détails
+                                </a>
+                                {% if is_instructor %}
+                                <div class="dropdown">
+                                    <button class="btn btn-link text-muted" type="button"
+                                            id="assignmentMenu{{ assignment.id }}" 
+                                            data-bs-toggle="dropdown"
+                                            aria-expanded="false">
+                                        <i class="fas fa-ellipsis-v"></i>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end" 
+                                        aria-labelledby="assignmentMenu{{ assignment.id }}">
+                                        <li>
+                                            <a class="dropdown-item" 
+                                               href="{% url 'courses:assignment_edit' course.slug assignment.id %}">
+                                                <i class="fas fa-edit me-2"></i>
+                                                Modifier
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item" 
+                                               href="{% url 'courses:assignment_submissions' course.slug assignment.id %}">
+                                                <i class="fas fa-list-alt me-2"></i>
+                                                Voir les soumissions
+                                            </a>
+                                        </li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li>
+                                            <form method="post" 
+                                                  action="{% url 'courses:assignment_delete' course.slug assignment.id %}"
+                                                  onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce devoir ?');">
+                                                {% csrf_token %}
+                                                <button type="submit" class="dropdown-item text-danger">
+                                                    <i class="fas fa-trash-alt me-2"></i>
+                                                    Supprimer
+                                                </button>
+                                            </form>
+                                        </li>
+                                    </ul>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-12">
+                    <div class="alert alert-info text-center">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Aucun devoir ne correspond à vos critères de recherche.
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Pagination -->
+            {% if is_paginated %}
+            <nav aria-label="Navigation des pages" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" 
+                           href="?page={{ page_obj.previous_page_number }}{% if status %}&status={{ status }}{% endif %}{% if current_module %}&module={{ current_module }}{% endif %}">
+                            Précédent
+                        </a>
+                    </li>
+                    {% endif %}
+
+                    {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                    <li class="page-item active">
+                        <span class="page-link">{{ num }}</span>
+                    </li>
+                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                    <li class="page-item">
+                        <a class="page-link" 
+                           href="?page={{ num }}{% if status %}&status={{ status }}{% endif %}{% if current_module %}&module={{ current_module }}{% endif %}">
+                            {{ num }}
+                        </a>
+                    </li>
+                    {% endif %}
+                    {% endfor %}
+
+                    {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" 
+                           href="?page={{ page_obj.next_page_number }}{% if status %}&status={{ status }}{% endif %}{% if current_module %}&module={{ current_module }}{% endif %}">
+                            Suivant
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .card {
+        transition: transform 0.2s ease-in-out;
+    }
+    .card:hover {
+        transform: translateY(-5px);
+    }
+    .dropdown-item {
+        cursor: pointer;
+    }
+    .progress {
+        background-color: #e9ecef;
+    }
+    .badge {
+        font-weight: 500;
+    }
+</style>
+{% endblock %}

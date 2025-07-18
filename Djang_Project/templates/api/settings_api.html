@@ -1,0 +1,372 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Settings & Configuration API Documentation | {{ block.super }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .api-section {
+        margin-bottom: 2rem;
+        padding: 1.5rem;
+        border-radius: 0.5rem;
+        background: #fff;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .endpoint {
+        border-left: 4px solid #3498db;
+        padding: 1rem;
+        margin: 1rem 0;
+        background: #f8f9fa;
+    }
+    .method {
+        display: inline-block;
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.25rem;
+        font-weight: bold;
+        margin-right: 0.5rem;
+    }
+    .get { background: #28a745; color: white; }
+    .post { background: #007bff; color: white; }
+    .put { background: #ffc107; color: black; }
+    .delete { background: #dc3545; color: white; }
+    .endpoint-url {
+        font-family: monospace;
+        padding: 0.25rem;
+        background: #e9ecef;
+        border-radius: 0.25rem;
+        cursor: pointer;
+    }
+    .settings-note {
+        background: #e8f4f8;
+        border: 1px solid #bee5eb;
+        padding: 1rem;
+        border-radius: 0.25rem;
+        margin-bottom: 1.5rem;
+    }
+    .response-example {
+        background: #272822;
+        color: #f8f8f2;
+        padding: 1rem;
+        border-radius: 0.25rem;
+        margin-top: 1rem;
+        font-family: monospace;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h1 class="mb-4">Settings & Configuration API Documentation</h1>
+
+    <div class="settings-note">
+        <h5><i class="fas fa-cogs"></i> Configuration Management</h5>
+        <p class="mb-0">Manage system-wide settings, organization preferences, and feature flags. All changes are audited and versioned.</p>
+    </div>
+
+    <!-- General Settings -->
+    <div class="api-section">
+        <h2>General Settings</h2>
+
+        <!-- Get Settings -->
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <span class="endpoint-url">/api/settings/</span>
+            <p>Get all system settings</p>
+
+            <h6>Response:</h6>
+            <div class="response-example">
+                <pre>{
+    "general": {
+        "site_name": "Community Lab Burundi",
+        "contact_email": "contact@example.com",
+        "timezone": "Africa/Bujumbura",
+        "default_language": "fr",
+        "maintenance_mode": false
+    },
+    "branding": {
+        "logo_url": "https://example.com/logo.png",
+        "favicon_url": "https://example.com/favicon.ico",
+        "primary_color": "#3498db",
+        "secondary_color": "#2ecc71"
+    },
+    "features": {
+        "enable_registration": true,
+        "enable_oauth": true,
+        "enable_2fa": true
+    }
+}</pre>
+            </div>
+        </div>
+
+        <!-- Update Settings -->
+        <div class="endpoint">
+            <span class="method put">PUT</span>
+            <span class="endpoint-url">/api/settings/</span>
+            <p>Update system settings (Admin only)</p>
+
+            <h6>Request Body:</h6>
+            <div class="response-example">
+                <pre>{
+    "general": {
+        "site_name": "Community Lab Burundi",
+        "maintenance_mode": true
+    },
+    "features": {
+        "enable_registration": false
+    }
+}</pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- Organization Settings -->
+    <div class="api-section">
+        <h2>Organization Settings</h2>
+
+        <!-- Get Organization Settings -->
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <span class="endpoint-url">/api/settings/organization/</span>
+            <p>Get organization-specific settings</p>
+
+            <h6>Response:</h6>
+            <div class="response-example">
+                <pre>{
+    "organization": {
+        "name": "Tech Hub Burundi",
+        "legal_name": "Tech Hub Burundi SARL",
+        "tax_id": "12345",
+        "address": {
+            "street": "123 Main St",
+            "city": "Bujumbura",
+            "country": "Burundi"
+        }
+    },
+    "billing": {
+        "currency": "BIF",
+        "payment_methods": ["mobile_money", "bank_transfer"],
+        "invoice_prefix": "THB-"
+    },
+    "startup_settings": {
+        "max_team_size": 10,
+        "require_approval": true,
+        "auto_archive_days": 90
+    }
+}</pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- Email Settings -->
+    <div class="api-section">
+        <h2>Email Settings</h2>
+
+        <!-- Update Email Settings -->
+        <div class="endpoint">
+            <span class="method put">PUT</span>
+            <span class="endpoint-url">/api/settings/email/</span>
+            <p>Configure email settings (Admin only)</p>
+
+            <h6>Request Body:</h6>
+            <div class="response-example">
+                <pre>{
+    "smtp": {
+        "host": "smtp.example.com",
+        "port": 587,
+        "username": "noreply@example.com",
+        "password": "smtp-password",
+        "use_tls": true
+    },
+    "sender": {
+        "name": "Community Lab Burundi",
+        "email": "noreply@example.com"
+    },
+    "templates": {
+        "welcome_email": {
+            "subject": "Bienvenue à {{site_name}}",
+            "enabled": true
+        },
+        "reset_password": {
+            "subject": "Réinitialisation du mot de passe",
+            "enabled": true
+        }
+    }
+}</pre>
+            </div>
+        </div>
+
+        <!-- Test Email -->
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <span class="endpoint-url">/api/settings/email/test/</span>
+            <p>Send test email</p>
+
+            <h6>Request Body:</h6>
+            <div class="response-example">
+                <pre>{
+    "to": "test@example.com",
+    "template": "welcome_email"
+}</pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- Feature Flags -->
+    <div class="api-section">
+        <h2>Feature Flags</h2>
+
+        <!-- List Feature Flags -->
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <span class="endpoint-url">/api/settings/features/</span>
+            <p>List all feature flags</p>
+
+            <h6>Response:</h6>
+            <div class="response-example">
+                <pre>{
+    "features": [
+        {
+            "key": "new_dashboard",
+            "name": "New Dashboard Interface",
+            "description": "Enable the new dashboard UI",
+            "enabled": true,
+            "type": "boolean",
+            "rollout_percentage": 100
+        },
+        {
+            "key": "ai_suggestions",
+            "name": "AI Suggestions",
+            "description": "Enable AI-powered suggestions",
+            "enabled": true,
+            "type": "gradual",
+            "rollout_percentage": 50
+        }
+    ]
+}</pre>
+            </div>
+        </div>
+
+        <!-- Update Feature Flag -->
+        <div class="endpoint">
+            <span class="method put">PUT</span>
+            <span class="endpoint-url">/api/settings/features/{feature_key}/</span>
+            <p>Update feature flag settings</p>
+
+            <h6>Request Body:</h6>
+            <div class="response-example">
+                <pre>{
+    "enabled": true,
+    "rollout_percentage": 75,
+    "target_users": ["premium", "beta"],
+    "conditions": {
+        "country": ["Burundi"],
+        "device_type": ["desktop", "mobile"]
+    }
+}</pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- Localization -->
+    <div class="api-section">
+        <h2>Localization</h2>
+
+        <!-- Update Translations -->
+        <div class="endpoint">
+            <span class="method put">PUT</span>
+            <span class="endpoint-url">/api/settings/localization/</span>
+            <p>Update translation strings</p>
+
+            <h6>Request Body:</h6>
+            <div class="response-example">
+                <pre>{
+    "language": "fr",
+    "translations": {
+        "common.welcome": "Bienvenue",
+        "common.login": "Se connecter",
+        "errors.required": "Ce champ est obligatoire"
+    }
+}</pre>
+            </div>
+        </div>
+
+        <!-- Get Available Languages -->
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <span class="endpoint-url">/api/settings/localization/languages/</span>
+            <p>List available languages</p>
+        </div>
+    </div>
+
+    <!-- Audit Log -->
+    <div class="api-section">
+        <h2>Audit Log</h2>
+
+        <!-- Get Settings History -->
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <span class="endpoint-url">/api/settings/audit/</span>
+            <p>Get settings change history</p>
+
+            <h6>Query Parameters:</h6>
+            <table class="table params-table">
+                <thead>
+                    <tr>
+                        <th>Parameter</th>
+                        <th>Type</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>section</td>
+                        <td>string</td>
+                        <td>Filter by settings section</td>
+                    </tr>
+                    <tr>
+                        <td>user</td>
+                        <td>string</td>
+                        <td>Filter by user who made changes</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h6>Response:</h6>
+            <div class="response-example">
+                <pre>{
+    "changes": [
+        {
+            "id": "change-123",
+            "section": "general",
+            "key": "site_name",
+            "old_value": "Tech Hub",
+            "new_value": "Community Lab Burundi",
+            "changed_by": "admin@example.com",
+            "timestamp": "2024-01-19T14:00:00Z",
+            "reason": "Rebranding update"
+        }
+    ]
+}</pre>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Add copy functionality for endpoint URLs
+    document.querySelectorAll('.endpoint-url').forEach(element => {
+        element.addEventListener('click', function() {
+            const text = this.textContent;
+            navigator.clipboard.writeText(text).then(() => {
+                const originalText = this.textContent;
+                this.textContent = 'Copied!';
+                setTimeout(() => {
+                    this.textContent = originalText;
+                }, 1000);
+            });
+        });
+    });
+</script>
+{% endblock %}

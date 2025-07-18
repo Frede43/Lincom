@@ -1,0 +1,174 @@
+{% extends 'base.html' %}
+
+{% block title %}Appels à projets - Community Lab{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h1>Appels à projets</h1>
+    </div>
+    {% if user.is_authenticated and user.is_organization_member %}
+    <div class="col-md-4 text-end">
+        <a href="{% url 'organizations:project_call_create' %}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Publier un appel à projets
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-12">
+        <form method="get" class="card p-3">
+            <div class="row">
+                <div class="col-md-4">
+                    <input type="text" name="search" class="form-control" 
+                           placeholder="Rechercher un appel à projets..." 
+                           value="{{ request.GET.search }}">
+                </div>
+                <div class="col-md-3">
+                    <select name="status" class="form-select">
+                        <option value="">Tous les statuts</option>
+                        <option value="DRAFT" {% if request.GET.status == 'DRAFT' %}selected{% endif %}>Brouillon</option>
+                        <option value="OPEN" {% if request.GET.status == 'OPEN' %}selected{% endif %}>Ouvert</option>
+                        <option value="CLOSED" {% if request.GET.status == 'CLOSED' %}selected{% endif %}>Fermé</option>
+                        <option value="UNDER_REVIEW" {% if request.GET.status == 'UNDER_REVIEW' %}selected{% endif %}>En cours d'évaluation</option>
+                        <option value="COMPLETED" {% if request.GET.status == 'COMPLETED' %}selected{% endif %}>Terminé</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select name="organization" class="form-select">
+                        <option value="">Toutes les organisations</option>
+                        {% for org in organizations %}
+                            <option value="{{ org.id }}" {% if request.GET.organization == org.id|stringformat:"s" %}selected{% endif %}>
+                                {{ org.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">Filtrer</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="row">
+    {% if project_calls %}
+        {% for call in project_calls %}
+            <div class="col-md-6 mb-4">
+                <div class="card h-100">
+                    {% if call.image %}
+                        <img src="{{ call.image.url }}" class="card-img-top" alt="{{ call.title }}">
+                    {% endif %}
+                    <div class="card-body">
+                        <h5 class="card-title">{{ call.title }}</h5>
+                        <p class="card-text">{{ call.description|truncatewords:30 }}</p>
+                        
+                        <div class="mb-3">
+                            <span class="badge {% if call.status == 'OPEN' %}bg-success{% elif call.status == 'CLOSED' %}bg-danger{% else %}bg-secondary{% endif %}">
+                                {{ call.get_status_display }}
+                            </span>
+                            {% if call.funding_amount %}
+                                <span class="badge bg-primary">
+                                    Financement : {{ call.funding_amount }} BIF
+                                </span>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <p class="mb-1">
+                                <i class="fas fa-building"></i>
+                                Par {{ call.organization.name }}
+                            </p>
+                            <p class="mb-1">
+                                <i class="fas fa-calendar-alt"></i>
+                                Date limite : {{ call.deadline|date:"d/m/Y" }}
+                            </p>
+                            <p class="mb-0">
+                                <i class="fas fa-file-alt"></i>
+                                {{ call.submissions.count }} soumission(s)
+                            </p>
+                        </div>
+                    </div>
+                    <div class="card-footer bg-white">
+                        <div class="d-flex justify-content-between align-items-center">
+                            {% if call.status == 'OPEN' %}
+                                {% if user.is_authenticated and user.is_startup_member %}
+                                    {% if not user.startup in call.submissions.all %}
+                                        <a href="{% url 'organizations:project_submission_create' call.id %}" 
+                                           class="btn btn-primary">
+                                            Soumettre un projet
+                                        </a>
+                                    {% else %}
+                                        <span class="text-success">
+                                            <i class="fas fa-check-circle"></i> Projet soumis
+                                        </span>
+                                    {% endif %}
+                                {% elif not user.is_authenticated %}
+                                    <a href="{% url 'accounts:login' %}?next={{ request.path }}" 
+                                       class="btn btn-primary">
+                                        Se connecter pour soumettre
+                                    </a>
+                                {% else %}
+                                    <span class="text-muted">
+                                        Réservé aux startups
+                                    </span>
+                                {% endif %}
+                            {% else %}
+                                <span class="text-muted">
+                                    Soumissions fermées
+                                </span>
+                            {% endif %}
+                            <a href="{% url 'organizations:project_call_detail' call.id %}" 
+                               class="btn btn-outline-primary">
+                                Détails
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    {% else %}
+        <div class="col-12">
+            <div class="alert alert-info">
+                Aucun appel à projets ne correspond à vos critères de recherche.
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+{% if is_paginated %}
+<nav aria-label="Navigation des pages">
+    <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.organization %}&organization={{ request.GET.organization }}{% endif %}">Précédent</a>
+            </li>
+        {% endif %}
+
+        {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+                <li class="page-item active">
+                    <span class="page-link">{{ num }}</span>
+                </li>
+            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ num }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.organization %}&organization={{ request.GET.organization }}{% endif %}">{{ num }}</a>
+                </li>
+            {% endif %}
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.organization %}&organization={{ request.GET.organization }}{% endif %}">Suivant</a>
+            </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+{% endblock %}

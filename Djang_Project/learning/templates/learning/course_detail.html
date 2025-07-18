@@ -1,0 +1,163 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ course.title }} - Community Lab{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'learning:course_list' %}">Cours</a></li>
+                <li class="breadcrumb-item active">{{ course.title }}</li>
+            </ol>
+        </nav>
+
+        <div class="card mb-4">
+            {% if course.image %}
+                <img src="{{ course.image.url }}" class="card-img-top" alt="{{ course.title }}">
+            {% endif %}
+            <div class="card-body">
+                <h1 class="card-title">{{ course.title }}</h1>
+                <div class="mb-3">
+                    <span class="badge bg-primary">{{ course.get_level_display }}</span>
+                    <span class="badge bg-secondary">{{ course.category.name }}</span>
+                </div>
+                <p class="card-text">{{ course.description }}</p>
+                
+                <h4>Objectifs d'apprentissage</h4>
+                <ul class="list-group list-group-flush mb-4">
+                    {% for objective in course.objectives.all %}
+                        <li class="list-group-item">
+                            <i class="fas fa-check text-success"></i> {{ objective.description }}
+                        </li>
+                    {% endfor %}
+                </ul>
+
+                <h4>Programme du cours</h4>
+                <div class="accordion mb-4" id="courseContent">
+                    {% for module in course.modules.all %}
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="heading{{ module.id }}">
+                                <button class="accordion-button {% if not forloop.first %}collapsed{% endif %}" type="button" 
+                                        data-bs-toggle="collapse" data-bs-target="#collapse{{ module.id }}">
+                                    {{ module.title }}
+                                </button>
+                            </h2>
+                            <div id="collapse{{ module.id }}" class="accordion-collapse collapse {% if forloop.first %}show{% endif %}"
+                                 data-bs-parent="#courseContent">
+                                <div class="accordion-body">
+                                    <p>{{ module.description }}</p>
+                                    <ul class="list-unstyled">
+                                        {% for lesson in module.lessons.all %}
+                                            <li class="mb-2">
+                                                <i class="fas fa-play-circle"></i>
+                                                {{ lesson.title }}
+                                                <span class="text-muted">({{ lesson.duration }} min)</span>
+                                            </li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        {% if user.is_authenticated and enrollment %}
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h4>Votre progression</h4>
+                    <div class="progress mb-3">
+                        <div class="progress-bar" role="progressbar" style="width: {{ enrollment.progress }}%">
+                            {{ enrollment.progress }}%
+                        </div>
+                    </div>
+                    <p class="text-muted">
+                        Inscrit depuis le {{ enrollment.enrolled_at|date:"d/m/Y" }}
+                    </p>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title">À propos du mentor</h5>
+                <div class="d-flex align-items-center mb-3">
+                    {% if course.mentor.profile.avatar %}
+                        <img src="{{ course.mentor.profile.avatar.url }}" class="rounded-circle me-3" width="64" height="64"
+                             alt="{{ course.mentor.get_full_name }}">
+                    {% endif %}
+                    <div>
+                        <h6 class="mb-0">{{ course.mentor.get_full_name }}</h6>
+                        <p class="text-muted mb-0">{{ course.mentor.profile.title }}</p>
+                    </div>
+                </div>
+                <p>{{ course.mentor.profile.bio|truncatewords:50 }}</p>
+                <a href="{% url 'accounts:profile_detail' course.mentor.username %}" class="btn btn-outline-primary btn-sm">
+                    Voir le profil
+                </a>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title">Informations</h5>
+                <ul class="list-unstyled">
+                    <li class="mb-2">
+                        <i class="fas fa-users"></i> {{ course.enrolled_students.count }} étudiants inscrits
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-clock"></i> {{ course.total_duration }} heures de contenu
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-calendar-alt"></i> Dernière mise à jour {{ course.updated_at|date:"d/m/Y" }}
+                    </li>
+                </ul>
+
+                {% if user.is_authenticated %}
+                    {% if not enrollment %}
+                        <form method="post" action="{% url 'learning:course_enroll' course.id %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-primary w-100">S'inscrire au cours</button>
+                        </form>
+                    {% else %}
+                        <a href="{% url 'learning:course_learn' course.id %}" class="btn btn-success w-100">
+                            Continuer le cours
+                        </a>
+                    {% endif %}
+                {% else %}
+                    <a href="{% url 'accounts:login' %}?next={{ request.path }}" class="btn btn-primary w-100">
+                        Connectez-vous pour vous inscrire
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if similar_courses %}
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Cours similaires</h5>
+                    <div class="list-group list-group-flush">
+                        {% for similar in similar_courses %}
+                            <a href="{% url 'learning:course_detail' similar.id %}" class="list-group-item list-group-item-action">
+                                <h6 class="mb-1">{{ similar.title }}</h6>
+                                <p class="mb-1 text-muted small">{{ similar.description|truncatewords:10 }}</p>
+                                <small>
+                                    <i class="fas fa-users"></i> {{ similar.enrolled_students.count }} étudiants
+                                </small>
+                            </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+{% endblock %}

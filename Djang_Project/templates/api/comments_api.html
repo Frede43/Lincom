@@ -1,0 +1,372 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Comments & Feedback API Documentation | {{ block.super }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .api-section {
+        margin-bottom: 2rem;
+        padding: 1.5rem;
+        border-radius: 0.5rem;
+        background: #fff;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .endpoint {
+        border-left: 4px solid #3498db;
+        padding: 1rem;
+        margin: 1rem 0;
+        background: #f8f9fa;
+    }
+    .method {
+        display: inline-block;
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.25rem;
+        font-weight: bold;
+        margin-right: 0.5rem;
+    }
+    .get { background: #28a745; color: white; }
+    .post { background: #007bff; color: white; }
+    .put { background: #ffc107; color: black; }
+    .delete { background: #dc3545; color: white; }
+    .patch { background: #6c757d; color: white; }
+    .endpoint-url {
+        font-family: monospace;
+        padding: 0.25rem;
+        background: #e9ecef;
+        border-radius: 0.25rem;
+        cursor: pointer;
+    }
+    .comment-note {
+        background: #e8f4f8;
+        border: 1px solid #bee5eb;
+        padding: 1rem;
+        border-radius: 0.25rem;
+        margin-bottom: 1.5rem;
+    }
+    .response-example {
+        background: #272822;
+        color: #f8f8f2;
+        padding: 1rem;
+        border-radius: 0.25rem;
+        margin-top: 1rem;
+        font-family: monospace;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h1 class="mb-4">Comments & Feedback API Documentation</h1>
+
+    <div class="comment-note">
+        <h5><i class="fas fa-comments"></i> Comment System Features</h5>
+        <p class="mb-0">Support for rich text, mentions (@user), attachments, and threaded discussions. Comments can be moderated and filtered for inappropriate content.</p>
+    </div>
+
+    <!-- Comments Management -->
+    <div class="api-section">
+        <h2>Comments Management</h2>
+
+        <!-- Create Comment -->
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <span class="endpoint-url">/api/comments/</span>
+            <p>Create a new comment</p>
+
+            <h6>Request Body:</h6>
+            <div class="response-example">
+                <pre>{
+    "content": "Great progress on this project! @john.doe",
+    "entity_type": "startup",
+    "entity_id": "startup-123",
+    "parent_id": null,  // For threaded comments
+    "mentions": ["user-456"],
+    "attachments": [
+        {
+            "file_id": "file-789",
+            "type": "image"
+        }
+    ]
+}</pre>
+            </div>
+
+            <h6>Response:</h6>
+            <div class="response-example">
+                <pre>{
+    "id": "comment-123",
+    "content": "Great progress on this project! @john.doe",
+    "author": {
+        "id": "user-789",
+        "name": "Alice Smith",
+        "avatar_url": "https://example.com/avatars/alice.jpg"
+    },
+    "created_at": "2024-01-19T14:00:00Z",
+    "mentions": [
+        {
+            "user_id": "user-456",
+            "name": "John Doe"
+        }
+    ],
+    "attachments": [
+        {
+            "id": "file-789",
+            "type": "image",
+            "url": "https://example.com/files/image.jpg"
+        }
+    ]
+}</pre>
+            </div>
+        </div>
+
+        <!-- List Comments -->
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <span class="endpoint-url">/api/comments/</span>
+            <p>List comments for an entity</p>
+
+            <h6>Query Parameters:</h6>
+            <table class="table params-table">
+                <thead>
+                    <tr>
+                        <th>Parameter</th>
+                        <th>Type</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>entity_type</td>
+                        <td>string</td>
+                        <td>Type of entity (startup, project)</td>
+                    </tr>
+                    <tr>
+                        <td>entity_id</td>
+                        <td>string</td>
+                        <td>ID of the entity</td>
+                    </tr>
+                    <tr>
+                        <td>thread_view</td>
+                        <td>boolean</td>
+                        <td>Show threaded view</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Comment Reactions -->
+    <div class="api-section">
+        <h2>Comment Reactions</h2>
+
+        <!-- Add Reaction -->
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <span class="endpoint-url">/api/comments/{comment_id}/reactions/</span>
+            <p>Add a reaction to a comment</p>
+
+            <h6>Request Body:</h6>
+            <div class="response-example">
+                <pre>{
+    "type": "like",  // like, celebrate, support
+    "emoji": "👍"
+}</pre>
+            </div>
+        </div>
+
+        <!-- List Reactions -->
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <span class="endpoint-url">/api/comments/{comment_id}/reactions/</span>
+            <p>List reactions for a comment</p>
+        </div>
+    </div>
+
+    <!-- Comment Moderation -->
+    <div class="api-section">
+        <h2>Comment Moderation</h2>
+
+        <!-- Flag Comment -->
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <span class="endpoint-url">/api/comments/{comment_id}/flag/</span>
+            <p>Flag a comment for moderation</p>
+
+            <h6>Request Body:</h6>
+            <div class="response-example">
+                <pre>{
+    "reason": "inappropriate",
+    "details": "Contains offensive language"
+}</pre>
+            </div>
+        </div>
+
+        <!-- Moderate Comment -->
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <span class="endpoint-url">/api/comments/{comment_id}/moderate/</span>
+            <p>Moderate a flagged comment (Admin only)</p>
+
+            <h6>Request Body:</h6>
+            <div class="response-example">
+                <pre>{
+    "action": "hide",  // hide, delete, approve
+    "reason": "Violation of community guidelines",
+    "notify_user": true
+}</pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- Feedback Management -->
+    <div class="api-section">
+        <h2>Feedback Management</h2>
+
+        <!-- Submit Feedback -->
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <span class="endpoint-url">/api/feedback/</span>
+            <p>Submit user feedback</p>
+
+            <h6>Request Body:</h6>
+            <div class="response-example">
+                <pre>{
+    "type": "feature_request",  // bug_report, feature_request, general
+    "title": "Add export to PDF",
+    "description": "It would be helpful to export reports to PDF",
+    "priority": "medium",
+    "category": "reporting",
+    "attachments": [
+        {
+            "file_id": "file-789",
+            "type": "screenshot"
+        }
+    ]
+}</pre>
+            </div>
+        </div>
+
+        <!-- List Feedback -->
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <span class="endpoint-url">/api/feedback/</span>
+            <p>List feedback items (Admin only)</p>
+
+            <h6>Query Parameters:</h6>
+            <table class="table params-table">
+                <thead>
+                    <tr>
+                        <th>Parameter</th>
+                        <th>Type</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>type</td>
+                        <td>string</td>
+                        <td>Filter by feedback type</td>
+                    </tr>
+                    <tr>
+                        <td>status</td>
+                        <td>string</td>
+                        <td>Filter by status</td>
+                    </tr>
+                    <tr>
+                        <td>priority</td>
+                        <td>string</td>
+                        <td>Filter by priority</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Feedback Categories -->
+    <div class="api-section">
+        <h2>Feedback Categories</h2>
+
+        <!-- List Categories -->
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <span class="endpoint-url">/api/feedback/categories/</span>
+            <p>List feedback categories</p>
+
+            <h6>Response:</h6>
+            <div class="response-example">
+                <pre>{
+    "categories": [
+        {
+            "id": "reporting",
+            "name": "Reporting & Analytics",
+            "description": "Features related to reports and analytics"
+        },
+        {
+            "id": "ui",
+            "name": "User Interface",
+            "description": "UI/UX suggestions and improvements"
+        }
+    ]
+}</pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- Feedback Analytics -->
+    <div class="api-section">
+        <h2>Feedback Analytics</h2>
+
+        <!-- Get Feedback Stats -->
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <span class="endpoint-url">/api/feedback/stats/</span>
+            <p>Get feedback statistics (Admin only)</p>
+
+            <h6>Response:</h6>
+            <div class="response-example">
+                <pre>{
+    "total_feedback": 150,
+    "by_type": {
+        "feature_request": 80,
+        "bug_report": 45,
+        "general": 25
+    },
+    "by_status": {
+        "open": 50,
+        "in_progress": 30,
+        "completed": 70
+    },
+    "trending_categories": [
+        {
+            "category": "reporting",
+            "count": 45
+        }
+    ],
+    "response_time": {
+        "average": 24,  // hours
+        "median": 18
+    }
+}</pre>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Add copy functionality for endpoint URLs
+    document.querySelectorAll('.endpoint-url').forEach(element => {
+        element.addEventListener('click', function() {
+            const text = this.textContent;
+            navigator.clipboard.writeText(text).then(() => {
+                const originalText = this.textContent;
+                this.textContent = 'Copied!';
+                setTimeout(() => {
+                    this.textContent = originalText;
+                }, 1000);
+            });
+        });
+    });
+</script>
+{% endblock %}

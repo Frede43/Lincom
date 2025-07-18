@@ -1,0 +1,161 @@
+{% extends "rest_framework/base.html" %}
+
+{% block title %}
+ComLab API - Welcome
+{% endblock %}
+
+{% block navbar %}
+<div class="navbar navbar-static-top navbar-inverse">
+    <div class="container">
+        <span class="navbar-brand">ComLab API</span>
+        <ul class="nav navbar-nav float-right">
+            {% if request.user.is_authenticated %}
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'api-root' %}">API Explorer</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'rest_framework:logout' %}">Logout ({{ request.user.username }})</a>
+            </li>
+            {% else %}
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'rest_framework:login' %}">Login</a>
+            </li>
+            {% endif %}
+        </ul>
+    </div>
+</div>
+{% endblock %}
+
+{% block body %}
+<div class="container my-5">
+    <div class="jumbotron text-center bg-white shadow-sm rounded">
+        <h1 class="display-4">Welcome to ComLab API</h1>
+        <p class="lead">A modern API for managing educational content and student progress</p>
+        <hr class="my-4">
+        <p>Access our interactive API documentation and test the endpoints directly from your browser.</p>
+        {% if request.user.is_authenticated %}
+        <a class="btn btn-primary btn-lg" href="{% url 'api-root' %}" role="button">
+            Continue to API Explorer
+        </a>
+        {% else %}
+        <a class="btn btn-primary btn-lg" href="{% url 'rest_framework:login' %}" role="button">
+            Login to Start
+        </a>
+        {% endif %}
+    </div>
+
+    <div class="row mt-5">
+        <div class="col-md-3">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">📚 Education</h5>
+                    <p class="card-text">Manage courses, modules, and track student progress with our comprehensive education API.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">🚀 Entrepreneurship</h5>
+                    <p class="card-text">Track startups, projects, milestones, and manage entrepreneurial resources.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">🏢 Organizations</h5>
+                    <p class="card-text">Manage organizations, calls for projects, competitions, and submissions.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">👥 Users</h5>
+                    <p class="card-text">Handle user profiles, mentors, entrepreneurs, and stakeholders.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    body {
+        background-color: #f8f9fa;
+    }
+
+    .navbar {
+        background-color: #2c3e50 !important;
+        margin-bottom: 0;
+    }
+
+    .navbar-brand {
+        color: white !important;
+        font-weight: bold;
+    }
+
+    .nav-link {
+        color: rgba(255,255,255,0.8) !important;
+    }
+
+    .nav-link:hover {
+        color: white !important;
+    }
+
+    .jumbotron {
+        background-color: white;
+        padding: 4rem 2rem;
+        margin-top: 2rem;
+    }
+
+    .card {
+        transition: transform 0.2s;
+        margin-bottom: 1rem;
+        border: none;
+    }
+
+    .card:hover {
+        transform: translateY(-5px);
+    }
+
+    .display-4 {
+        color: #2c3e50;
+        font-weight: bold;
+    }
+
+    .btn-primary {
+        background-color: #3498db;
+        border-color: #3498db;
+        padding: 0.8rem 2rem;
+    }
+
+    .btn-primary:hover {
+        background-color: #2980b9;
+        border-color: #2980b9;
+    }
+
+    .card-title {
+        color: #2c3e50;
+        font-weight: bold;
+    }
+
+    .lead {
+        color: #7f8c8d;
+    }
+
+    .float-right {
+        float: right !important;
+    }
+
+    @media (max-width: 768px) {
+        .jumbotron {
+            padding: 2rem 1rem;
+        }
+        
+        .container {
+            padding: 0 15px;
+        }
+    }
+</style>
+{% endblock %}

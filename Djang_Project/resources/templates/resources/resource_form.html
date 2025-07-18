@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %}
+{% if form.instance.pk %}Modifier{% else %}Ajouter{% endif %} une ressource
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body">
+                    <h1 class="card-title text-center mb-4">
+                        {% if form.instance.pk %}
+                        Modifier la ressource
+                        {% else %}
+                        Ajouter une nouvelle ressource
+                        {% endif %}
+                    </h1>
+
+                    <form method="post" enctype="multipart/form-data" novalidate>
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <div class="col-md-12">
+                                {{ form.title|as_crispy_field }}
+                            </div>
+                            <div class="col-md-12">
+                                {{ form.description|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.category|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.resource_type|as_crispy_field }}
+                            </div>
+                            <div class="col-md-12">
+                                {{ form.tags|as_crispy_field }}
+                            </div>
+                            <div class="col-md-12 file-field">
+                                {{ form.file|as_crispy_field }}
+                            </div>
+                            <div class="col-md-12 url-field">
+                                {{ form.url|as_crispy_field }}
+                            </div>
+                            <div class="col-md-12">
+                                {{ form.is_public|as_crispy_field }}
+                            </div>
+                            <div class="col-md-12">
+                                {{ form.is_featured|as_crispy_field }}
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                            <a href="{% url 'resources:resource-list' %}" class="btn btn-outline-secondary me-md-2">Annuler</a>
+                            <button type="submit" class="btn btn-primary">
+                                {% if form.instance.pk %}
+                                Mettre à jour
+                                {% else %}
+                                Ajouter
+                                {% endif %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const resourceTypeSelect = document.getElementById('id_resource_type');
+    const fileField = document.querySelector('.file-field');
+    const urlField = document.querySelector('.url-field');
+
+    function toggleFields() {
+        const selectedValue = resourceTypeSelect.value;
+        if (selectedValue === 'file') {
+            fileField.classList.remove('d-none');
+            urlField.classList.add('d-none');
+        } else if (selectedValue === 'url') {
+            fileField.classList.add('d-none');
+            urlField.classList.remove('d-none');
+        } else {
+            fileField.classList.remove('d-none');
+            urlField.classList.remove('d-none');
+        }
+    }
+
+    resourceTypeSelect.addEventListener('change', toggleFields);
+    toggleFields();
+});
+</script>
+{% endblock %}
+{% endblock %}

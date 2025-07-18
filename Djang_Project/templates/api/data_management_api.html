@@ -1,0 +1,437 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Data Management API Documentation | {{ block.super }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .api-section {
+        margin-bottom: 2rem;
+        padding: 1.5rem;
+        border-radius: 0.5rem;
+        background: #fff;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .endpoint {
+        border-left: 4px solid #3498db;
+        padding: 1rem;
+        margin: 1rem 0;
+        background: #f8f9fa;
+    }
+    .method {
+        display: inline-block;
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.25rem;
+        font-weight: bold;
+        margin-right: 0.5rem;
+    }
+    .get { background: #28a745; color: white; }
+    .post { background: #007bff; color: white; }
+    .put { background: #ffc107; color: black; }
+    .delete { background: #dc3545; color: white; }
+    .patch { background: #6c757d; color: white; }
+    .endpoint-url {
+        font-family: monospace;
+        padding: 0.25rem;
+        background: #e9ecef;
+        border-radius: 0.25rem;
+        cursor: pointer;
+    }
+    .data-note {
+        background: #e8f4f8;
+        border: 1px solid #bee5eb;
+        padding: 1rem;
+        border-radius: 0.25rem;
+        margin-bottom: 1.5rem;
+    }
+    .response-example {
+        background: #272822;
+        color: #f8f8f2;
+        padding: 1rem;
+        border-radius: 0.25rem;
+        margin-top: 1rem;
+        font-family: monospace;
+    }
+    .format-type {
+        display: inline-block;
+        padding: 0.2rem 0.5rem;
+        border-radius: 0.25rem;
+        font-size: 0.8rem;
+        margin-right: 0.5rem;
+    }
+    .csv { background: #007bff; color: white; }
+    .json { background: #28a745; color: white; }
+    .excel { background: #dc3545; color: white; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h1 class="mb-4">Data Management API Documentation</h1>
+
+    <div class="data-note">
+        <h5><i class="fas fa-file-alt"></i> Supported Formats</h5>
+        <p class="mb-0">
+            Available formats:
+            <span class="format-type csv">CSV</span>
+            <span class="format-type json">JSON</span>
+            <span class="format-type excel">Excel</span>
+        </p>
+    </div>
+
+    <!-- Data Import -->
+    <div class="api-section">
+        <h2>Data Import</h2>
+
+        <!-- Import Data -->
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <span class="endpoint-url">/api/data/import/</span>
+            <p>Import data from file</p>
+
+            <h6>Request Body:</h6>
+            <div class="response-example">
+                <pre>{
+    "type": "startup_data",
+    "format": "csv",
+    "file_url": "https://example.com/data.csv",
+    "mapping": {
+        "columns": {
+            "name": "startup_name",
+            "description": "company_description",
+            "founded_date": "date_founded"
+        },
+        "transformations": {
+            "founded_date": "date_format(YYYY-MM-DD)"
+        }
+    },
+    "options": {
+        "skip_header": true,
+        "batch_size": 1000,
+        "duplicate_handling": "update"
+    },
+    "validation": {
+        "rules": [
+            {
+                "field": "name",
+                "required": true,
+                "min_length": 2
+            }
+        ]
+    }
+}</pre>
+            </div>
+
+            <h6>Response:</h6>
+            <div class="response-example">
+                <pre>{
+    "job_id": "import_123",
+    "status": "processing",
+    "total_records": 5000,
+    "processed_records": 0,
+    "estimated_time": 300  // seconds
+}</pre>
+            </div>
+        </div>
+
+        <!-- Check Import Status -->
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <span class="endpoint-url">/api/data/import/{job_id}/status/</span>
+            <p>Check import job status</p>
+        </div>
+    </div>
+
+    <!-- Data Export -->
+    <div class="api-section">
+        <h2>Data Export</h2>
+
+        <!-- Export Data -->
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <span class="endpoint-url">/api/data/export/</span>
+            <p>Export data to file</p>
+
+            <h6>Request Body:</h6>
+            <div class="response-example">
+                <pre>{
+    "type": "analytics_report",
+    "format": "excel",
+    "filters": {
+        "date_range": {
+            "start": "2024-01-01",
+            "end": "2024-01-31"
+        },
+        "categories": ["tech", "agriculture"],
+        "status": "active"
+    },
+    "columns": [
+        "id",
+        "name",
+        "revenue",
+        "employees"
+    ],
+    "options": {
+        "include_metadata": true,
+        "sheet_name": "Rapport Q1 2024",
+        "password_protected": false
+    }
+}</pre>
+            </div>
+        </div>
+
+        <!-- Download Export -->
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <span class="endpoint-url">/api/data/export/{job_id}/download/</span>
+            <p>Download exported file</p>
+        </div>
+    </div>
+
+    <!-- Data Validation -->
+    <div class="api-section">
+        <h2>Data Validation</h2>
+
+        <!-- Validate Data -->
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <span class="endpoint-url">/api/data/validate/</span>
+            <p>Validate data against schema</p>
+
+            <h6>Request Body:</h6>
+            <div class="response-example">
+                <pre>{
+    "schema": {
+        "name": {
+            "type": "string",
+            "required": true,
+            "min_length": 2,
+            "max_length": 100
+        },
+        "email": {
+            "type": "email",
+            "required": true,
+            "unique": true
+        },
+        "founded_date": {
+            "type": "date",
+            "format": "YYYY-MM-DD"
+        }
+    },
+    "data": [
+        {
+            "name": "TechStart Burundi",
+            "email": "contact@techstart.bi",
+            "founded_date": "2024-01-01"
+        }
+    ]
+}</pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- Data Transformation -->
+    <div class="api-section">
+        <h2>Data Transformation</h2>
+
+        <!-- Transform Data -->
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <span class="endpoint-url">/api/data/transform/</span>
+            <p>Transform data format</p>
+
+            <h6>Request Body:</h6>
+            <div class="response-example">
+                <pre>{
+    "source_format": "csv",
+    "target_format": "json",
+    "transformations": [
+        {
+            "field": "date",
+            "operation": "format",
+            "from": "DD/MM/YYYY",
+            "to": "YYYY-MM-DD"
+        },
+        {
+            "field": "amount",
+            "operation": "multiply",
+            "value": 100
+        }
+    ],
+    "options": {
+        "encoding": "utf-8",
+        "timezone": "Africa/Bujumbura"
+    }
+}</pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- Data Backup -->
+    <div class="api-section">
+        <h2>Data Backup</h2>
+
+        <!-- Create Backup -->
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <span class="endpoint-url">/api/data/backup/</span>
+            <p>Create data backup</p>
+
+            <h6>Request Body:</h6>
+            <div class="response-example">
+                <pre>{
+    "type": "full",  // or "incremental"
+    "include": [
+        "startups",
+        "users",
+        "analytics"
+    ],
+    "storage": {
+        "provider": "s3",
+        "bucket": "backups",
+        "path": "2024/01"
+    },
+    "encryption": {
+        "enabled": true,
+        "algorithm": "AES-256"
+    },
+    "compression": true,
+    "retention": {
+        "days": 30,
+        "copies": 3
+    }
+}</pre>
+            </div>
+        </div>
+
+        <!-- List Backups -->
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <span class="endpoint-url">/api/data/backup/</span>
+            <p>List data backups</p>
+        </div>
+    </div>
+
+    <!-- Data Migration -->
+    <div class="api-section">
+        <h2>Data Migration</h2>
+
+        <!-- Create Migration -->
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <span class="endpoint-url">/api/data/migration/</span>
+            <p>Create data migration</p>
+
+            <h6>Request Body:</h6>
+            <div class="response-example">
+                <pre>{
+    "name": "update_startup_schema",
+    "description": "Add new fields to startup model",
+    "changes": [
+        {
+            "model": "Startup",
+            "operation": "add_field",
+            "field": {
+                "name": "social_impact",
+                "type": "text",
+                "nullable": true
+            }
+        }
+    ],
+    "dependencies": [
+        "migration_20240101"
+    ],
+    "rollback": {
+        "enabled": true,
+        "steps": [
+            {
+                "operation": "remove_field",
+                "field": "social_impact"
+            }
+        ]
+    }
+}</pre>
+            </div>
+        </div>
+
+        <!-- Run Migration -->
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <span class="endpoint-url">/api/data/migration/{migration_id}/run/</span>
+            <p>Run data migration</p>
+        </div>
+    </div>
+
+    <!-- Data Analytics -->
+    <div class="api-section">
+        <h2>Data Analytics</h2>
+
+        <!-- Get Analytics -->
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <span class="endpoint-url">/api/data/analytics/</span>
+            <p>Get data management analytics</p>
+
+            <h6>Response:</h6>
+            <div class="response-example">
+                <pre>{
+    "storage": {
+        "total_size": 5000000000,  // bytes
+        "used_size": 2500000000,
+        "by_type": {
+            "documents": 1000000000,
+            "media": 1500000000
+        }
+    },
+    "operations": {
+        "imports": {
+            "total": 100,
+            "successful": 95,
+            "failed": 5,
+            "average_duration": 300  // seconds
+        },
+        "exports": {
+            "total": 200,
+            "by_format": {
+                "csv": 100,
+                "excel": 80,
+                "json": 20
+            }
+        }
+    },
+    "backups": {
+        "total": 30,
+        "size": 1500000000,
+        "last_backup": "2024-01-19T14:00:00Z",
+        "success_rate": 100
+    },
+    "migrations": {
+        "total": 50,
+        "pending": 2,
+        "completed": 48,
+        "failed": 0
+    }
+}</pre>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Add copy functionality for endpoint URLs
+    document.querySelectorAll('.endpoint-url').forEach(element => {
+        element.addEventListener('click', function() {
+            const text = this.textContent;
+            navigator.clipboard.writeText(text).then(() => {
+                const originalText = this.textContent;
+                this.textContent = 'Copied!';
+                setTimeout(() => {
+                    this.textContent = originalText;
+                }, 1000);
+            });
+        });
+    });
+</script>
+{% endblock %}

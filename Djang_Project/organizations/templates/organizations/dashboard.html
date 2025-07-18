@@ -1,0 +1,195 @@
+{% extends 'base.html' %}
+
+{% block title %}Tableau de bord - {{ user.get_full_name }} - Community Lab{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <h1>Tableau de bord</h1>
+        </div>
+    </div>
+
+    <!-- Statistiques générales -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <h6 class="card-title">Appels à projets actifs</h6>
+                    <h2 class="mb-0">{{ metrics.active_project_calls }}</h2>
+                    <small>sur {{ metrics.total_project_calls }} au total</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <h6 class="card-title">Soumissions acceptées</h6>
+                    <h2 class="mb-0">{{ metrics.accepted_submissions }}</h2>
+                    <small>sur {{ metrics.total_submissions }} au total</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <h6 class="card-title">Compétitions actives</h6>
+                    <h2 class="mb-0">{{ metrics.active_competitions }}</h2>
+                    <small>sur {{ metrics.total_competitions }} au total</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <h6 class="card-title">Participants totaux</h6>
+                    <h2 class="mb-0">{{ metrics.total_participants }}</h2>
+                    <small>Dernière mise à jour : {{ metrics.last_updated|date:"d/m/Y H:i" }}</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Derniers appels à projets -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">Derniers appels à projets</h5>
+                    <a href="{% url 'organizations:project_call_create' %}" class="btn btn-primary btn-sm">
+                        <i class="fas fa-plus"></i> Nouveau
+                    </a>
+                </div>
+                <div class="card-body">
+                    <div class="list-group list-group-flush">
+                        {% for call in recent_project_calls %}
+                        <a href="{% url 'organizations:project_call_detail' call.pk %}" class="list-group-item list-group-item-action">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">{{ call.title }}</h6>
+                                <span class="badge bg-{{ call.status|lower }}">{{ call.get_status_display }}</span>
+                            </div>
+                            <p class="mb-1">{{ call.description|truncatechars:100 }}</p>
+                            <small class="text-muted">
+                                Créé le {{ call.created_at|date:"d/m/Y" }} |
+                                {{ call.submissions.count }} soumission(s)
+                            </small>
+                        </a>
+                        {% empty %}
+                        <p class="text-muted m-3">Aucun appel à projets pour le moment.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dernières soumissions -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Dernières soumissions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group list-group-flush">
+                        {% for submission in recent_submissions %}
+                        <a href="{% url 'organizations:project_submission_detail' submission.pk %}" class="list-group-item list-group-item-action">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">{{ submission.startup.name }}</h6>
+                                <span class="badge bg-{{ submission.status|lower }}">{{ submission.get_status_display }}</span>
+                            </div>
+                            <p class="mb-1">{{ submission.proposal|truncatechars:100 }}</p>
+                            <small class="text-muted">
+                                Soumis le {{ submission.submitted_at|date:"d/m/Y" }} |
+                                Budget : {{ submission.budget_proposal }} FCFA
+                            </small>
+                        </a>
+                        {% empty %}
+                        <p class="text-muted m-3">Aucune soumission pour le moment.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Statistiques d'évaluation -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Moyennes des évaluations</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="evaluationChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Compétitions actives -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">Compétitions actives</h5>
+                    <a href="{% url 'organizations:competition_create' %}" class="btn btn-primary btn-sm">
+                        <i class="fas fa-plus"></i> Nouvelle
+                    </a>
+                </div>
+                <div class="card-body">
+                    <div class="list-group list-group-flush">
+                        {% for competition in active_competitions %}
+                        <a href="{% url 'organizations:competition_detail' competition.pk %}" class="list-group-item list-group-item-action">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">{{ competition.title }}</h6>
+                                <small>
+                                    {{ competition.registrations.count }}/{{ competition.max_participants }} participants
+                                </small>
+                            </div>
+                            <p class="mb-1">{{ competition.description|truncatechars:100 }}</p>
+                            <small class="text-muted">
+                                Fin le {{ competition.end_date|date:"d/m/Y" }}
+                            </small>
+                        </a>
+                        {% empty %}
+                        <p class="text-muted m-3">Aucune compétition active pour le moment.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var ctx = document.getElementById('evaluationChart').getContext('2d');
+    var myChart = new Chart(ctx, {
+        type: 'radar',
+        data: {
+            labels: ['Innovation', 'Faisabilité', 'Potentiel marché', 'Équipe'],
+            datasets: [{
+                label: 'Score moyen',
+                data: [
+                    {{ avg_scores.innovation|floatformat:1 }},
+                    {{ avg_scores.feasibility|floatformat:1 }},
+                    {{ avg_scores.market_potential|floatformat:1 }},
+                    {{ avg_scores.team|floatformat:1 }}
+                ],
+                backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            scales: {
+                r: {
+                    beginAtZero: true,
+                    max: 5
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

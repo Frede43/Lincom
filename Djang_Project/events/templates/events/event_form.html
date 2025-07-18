@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %}
+{% if form.instance.pk %}Modifier{% else %}Créer{% endif %} un événement
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body">
+                    <h1 class="card-title text-center mb-4">
+                        {% if form.instance.pk %}
+                        Modifier l'événement
+                        {% else %}
+                        Créer un nouvel événement
+                        {% endif %}
+                    </h1>
+
+                    <form method="post" enctype="multipart/form-data" novalidate>
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <div class="col-md-12">
+                                {{ form.title|as_crispy_field }}
+                            </div>
+                            <div class="col-md-12">
+                                {{ form.description|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.category|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.max_participants|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.start_date|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.end_date|as_crispy_field }}
+                            </div>
+                            <div class="col-md-12">
+                                {{ form.is_virtual|as_crispy_field }}
+                            </div>
+                            <div class="col-md-12 location-field {% if form.instance.is_virtual %}d-none{% endif %}">
+                                {{ form.location|as_crispy_field }}
+                            </div>
+                            <div class="col-md-12 meeting-link-field {% if not form.instance.is_virtual %}d-none{% endif %}">
+                                {{ form.meeting_link|as_crispy_field }}
+                            </div>
+                            <div class="col-md-12">
+                                {{ form.image|as_crispy_field }}
+                            </div>
+                            <div class="col-md-12">
+                                {{ form.is_featured|as_crispy_field }}
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                            <a href="{% url 'events:event-list' %}" class="btn btn-outline-secondary me-md-2">Annuler</a>
+                            <button type="submit" class="btn btn-primary">
+                                {% if form.instance.pk %}
+                                Mettre à jour
+                                {% else %}
+                                Créer
+                                {% endif %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const isVirtualCheckbox = document.getElementById('id_is_virtual');
+    const locationField = document.querySelector('.location-field');
+    const meetingLinkField = document.querySelector('.meeting-link-field');
+
+    function toggleFields() {
+        if (isVirtualCheckbox.checked) {
+            locationField.classList.add('d-none');
+            meetingLinkField.classList.remove('d-none');
+        } else {
+            locationField.classList.remove('d-none');
+            meetingLinkField.classList.add('d-none');
+        }
+    }
+
+    isVirtualCheckbox.addEventListener('change', toggleFields);
+    toggleFields();
+});
+</script>
+{% endblock %}
+{% endblock %}

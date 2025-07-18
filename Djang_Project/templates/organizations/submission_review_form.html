@@ -1,0 +1,152 @@
+{% extends "organizations/base_organizations.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %}Évaluer la Soumission | {{ block.super }}{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'organizations:project_call_list' %}">Appels à Projets</a></li>
+<li class="breadcrumb-item"><a href="{% url 'organizations:project_call_detail' submission.project_call.pk %}">{{ submission.project_call.title }}</a></li>
+<li class="breadcrumb-item active">Évaluer la Soumission</li>
+{% endblock %}
+
+{% block organization_content %}
+<div class="row">
+    <div class="col-md-8">
+        <!-- Formulaire d'évaluation -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <h2 class="card-title mb-4">Évaluer la Soumission</h2>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <!-- Scores -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            {{ form.innovation_score|as_crispy_field }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.feasibility_score|as_crispy_field }}
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            {{ form.market_potential_score|as_crispy_field }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.team_score|as_crispy_field }}
+                        </div>
+                    </div>
+                    
+                    <!-- Commentaires -->
+                    {{ form.comments|as_crispy_field }}
+                    
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'organizations:project_call_detail' submission.project_call.pk %}" class="btn btn-outline-secondary">
+                            Annuler
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            Soumettre l'évaluation
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <!-- Détails de la soumission -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title">Détails de la soumission</h5>
+                
+                <p class="mb-2">
+                    <strong>Startup:</strong><br>
+                    <a href="{% url 'startups:startup_detail' submission.startup.slug %}">
+                        {{ submission.startup.name }}
+                    </a>
+                </p>
+                
+                <p class="mb-2">
+                    <strong>Date de soumission:</strong><br>
+                    {{ submission.submitted_at|date:"d F Y H:i" }}
+                </p>
+                
+                <p class="mb-2">
+                    <strong>Budget proposé:</strong><br>
+                    {{ submission.budget_proposal }} FCFA
+                </p>
+                
+                <p class="mb-2">
+                    <strong>Statut:</strong><br>
+                    <span class="badge {% if submission.status == 'accepted' %}bg-success{% elif submission.status == 'pending' %}bg-warning{% elif submission.status == 'under_review' %}bg-info{% else %}bg-danger{% endif %}">
+                        {{ submission.get_status_display }}
+                    </span>
+                </p>
+            </div>
+        </div>
+        
+        <!-- Proposition -->
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Proposition</h5>
+                <p class="card-text">{{ submission.proposal|linebreaks }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Guide d'évaluation -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Guide d'évaluation</h5>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Innovation (1-5)</h6>
+                        <ul>
+                            <li>1: Aucune innovation notable</li>
+                            <li>2: Légère amélioration des solutions existantes</li>
+                            <li>3: Innovation modérée</li>
+                            <li>4: Solution innovante</li>
+                            <li>5: Innovation disruptive</li>
+                        </ul>
+                        
+                        <h6>Faisabilité (1-5)</h6>
+                        <ul>
+                            <li>1: Non réalisable</li>
+                            <li>2: Difficile à réaliser</li>
+                            <li>3: Faisable avec des défis</li>
+                            <li>4: Facilement réalisable</li>
+                            <li>5: Déjà en cours de réalisation</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <h6>Potentiel du marché (1-5)</h6>
+                        <ul>
+                            <li>1: Marché très limité</li>
+                            <li>2: Petit marché</li>
+                            <li>3: Marché moyen</li>
+                            <li>4: Grand marché</li>
+                            <li>5: Marché très important</li>
+                        </ul>
+                        
+                        <h6>Équipe (1-5)</h6>
+                        <ul>
+                            <li>1: Équipe incomplète</li>
+                            <li>2: Équipe avec peu d'expérience</li>
+                            <li>3: Équipe compétente</li>
+                            <li>4: Équipe expérimentée</li>
+                            <li>5: Équipe exceptionnelle</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,192 @@
+{% extends "organizations/base_organizations.html" %}
+
+{% block title %}{{ project_call.title }} | {{ block.super }}{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'organizations:project_call_list' %}">Appels à Projets</a></li>
+<li class="breadcrumb-item active">{{ project_call.title }}</li>
+{% endblock %}
+
+{% block organization_content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h1>{{ project_call.title }}</h1>
+        <span class="badge {% if project_call.status == 'published' %}bg-success{% elif project_call.status == 'draft' %}bg-warning{% elif project_call.status == 'closed' %}bg-secondary{% else %}bg-danger{% endif %} mb-3">
+            {{ project_call.get_status_display }}
+        </span>
+    </div>
+    <div class="col-md-4 text-end">
+        {% if user.is_authenticated and user.is_staff %}
+        <a href="{% url 'organizations:project_call_update' project_call.pk %}" class="btn btn-primary">
+            <i class="fas fa-edit"></i> Modifier
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row">
+    <!-- Informations principales -->
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title">Description</h5>
+                <p class="card-text">{{ project_call.description|linebreaks }}</p>
+                
+                <h5 class="card-title mt-4">Exigences</h5>
+                <p class="card-text">{{ project_call.requirements|linebreaks }}</p>
+                
+                {% if project_call.budget %}
+                <h5 class="card-title mt-4">Budget</h5>
+                <p class="card-text prize-amount">{{ project_call.budget }} FCFA</p>
+                {% endif %}
+                
+                <h5 class="card-title mt-4">Dates importantes</h5>
+                <div class="row">
+                    <div class="col-md-6">
+                        <p>
+                            <strong><i class="fas fa-calendar"></i> Début:</strong><br>
+                            {{ project_call.start_date|date:"d F Y" }}
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        <p>
+                            <strong><i class="fas fa-flag-checkered"></i> Fin:</strong><br>
+                            {{ project_call.end_date|date:"d F Y" }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Soumissions -->
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Soumissions ({{ project_call.submissions.count }})</h5>
+                
+                {% if project_call.submissions.exists %}
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Startup</th>
+                                <th>Date de soumission</th>
+                                <th>Budget proposé</th>
+                                <th>Statut</th>
+                                {% if user.is_staff %}
+                                <th>Actions</th>
+                                {% endif %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for submission in project_call.submissions.all %}
+                            <tr>
+                                <td>
+                                    <a href="{% url 'startups:startup_detail' submission.startup.slug %}">
+                                        {{ submission.startup.name }}
+                                    </a>
+                                </td>
+                                <td>{{ submission.submitted_at|date:"d M Y" }}</td>
+                                <td>{{ submission.budget_proposal }} FCFA</td>
+                                <td>
+                                    <span class="badge {% if submission.status == 'accepted' %}bg-success{% elif submission.status == 'pending' %}bg-warning{% elif submission.status == 'under_review' %}bg-info{% else %}bg-danger{% endif %}">
+                                        {{ submission.get_status_display }}
+                                    </span>
+                                </td>
+                                {% if user.is_staff %}
+                                <td>
+                                    <a href="{% url 'organizations:submission_review' submission.pk %}" class="btn btn-sm btn-outline-primary">
+                                        Évaluer
+                                    </a>
+                                </td>
+                                {% endif %}
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted">Aucune soumission pour le moment.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="col-md-4">
+        <!-- Actions -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title">Actions</h5>
+                
+                {% if user.is_authenticated %}
+                    {% if user.startup %}
+                        {% if not project_call.submissions.filter(startup=user.startup).exists and project_call.status == 'published' %}
+                            <a href="{% url 'organizations:project_submission_create' project_call.pk %}" class="btn btn-success w-100 mb-3">
+                                Soumettre un projet
+                            </a>
+                        {% else %}
+                            <div class="alert alert-info">
+                                Votre startup a déjà soumis un projet.
+                            </div>
+                        {% endif %}
+                    {% else %}
+                        <div class="alert alert-warning">
+                            Vous devez être associé à une startup pour soumettre un projet.
+                        </div>
+                    {% endif %}
+                {% else %}
+                    <div class="alert alert-warning">
+                        Connectez-vous pour soumettre un projet.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Organisateur -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title">Organisateur</h5>
+                <p class="mb-0">
+                    <i class="fas fa-building"></i>
+                    {{ project_call.organization.get_full_name }}
+                </p>
+                <p class="mb-0">
+                    <i class="fas fa-envelope"></i>
+                    <a href="mailto:{{ project_call.organization.email }}">
+                        {{ project_call.organization.email }}
+                    </a>
+                </p>
+            </div>
+        </div>
+
+        <!-- Statistiques -->
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Statistiques</h5>
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Total des soumissions:</span>
+                    <span class="fw-bold">{{ project_call.submissions.count }}</span>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Soumissions acceptées:</span>
+                    <span class="fw-bold">{{ project_call.submissions.filter.status:'accepted'|length }}</span>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span>En cours d'évaluation:</span>
+                    <span class="fw-bold">{{ project_call.submissions.filter.status:'under_review'|length }}</span>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <span>Budget moyen proposé:</span>
+                    <span class="fw-bold">
+                        {% if project_call.submissions.exists %}
+                            {{ project_call.submissions.aggregate.avg:'budget_proposal'|floatformat:0 }} FCFA
+                        {% else %}
+                            N/A
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

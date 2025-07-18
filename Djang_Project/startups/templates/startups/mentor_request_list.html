@@ -1,0 +1,178 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{% trans "Demandes de mentorat" %} | {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h2">{% trans "Demandes de mentorat" %}</h1>
+        {% if user.profile.is_mentor %}
+        <a href="{% url 'startup_list' %}" class="btn btn-primary">
+            {% trans "Trouver une startup à mentorer" %}
+        </a>
+        {% endif %}
+    </div>
+
+    <div class="row">
+        <div class="col-md-3">
+            <!-- Filtres -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">{% trans "Filtres" %}</h5>
+                    <form method="get">
+                        <div class="mb-3">
+                            <label class="form-label">{% trans "Statut" %}</label>
+                            <select name="status" class="form-select">
+                                <option value="">{% trans "Tous" %}</option>
+                                <option value="pending" {% if request.GET.status == 'pending' %}selected{% endif %}>
+                                    {% trans "En attente" %}
+                                </option>
+                                <option value="accepted" {% if request.GET.status == 'accepted' %}selected{% endif %}>
+                                    {% trans "Acceptées" %}
+                                </option>
+                                <option value="rejected" {% if request.GET.status == 'rejected' %}selected{% endif %}>
+                                    {% trans "Rejetées" %}
+                                </option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">{% trans "Filtrer" %}</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-9">
+            <!-- Liste des demandes -->
+            {% if mentor_requests %}
+            <div class="list-group">
+                {% for request in mentor_requests %}
+                <div class="list-group-item">
+                    <div class="d-flex w-100 justify-content-between align-items-center">
+                        <div>
+                            {% if user.profile.is_mentor %}
+                            <h5 class="mb-1">{{ request.startup.name }}</h5>
+                            {% else %}
+                            <h5 class="mb-1">{{ request.mentor.get_full_name }}</h5>
+                            {% endif %}
+                            <p class="mb-1">{{ request.message|truncatewords:30 }}</p>
+                            <small class="text-muted">
+                                {% trans "Expertise" %}: {{ request.expertise_areas }}
+                                <br>
+                                {% trans "Disponibilité" %}: {{ request.availability }}
+                            </small>
+                        </div>
+                        <div class="text-end">
+                            <span class="badge {% if request.status == 'pending' %}bg-warning
+                                           {% elif request.status == 'accepted' %}bg-success
+                                           {% else %}bg-danger{% endif %}">
+                                {{ request.get_status_display }}
+                            </span>
+                            <br>
+                            <small class="text-muted">{{ request.created_at|date:"d/m/Y" }}</small>
+                            {% if request.status == 'pending' and user == request.startup.founder %}
+                            <div class="mt-2">
+                                <button class="btn btn-sm btn-success review-request" 
+                                        data-request-id="{{ request.id }}"
+                                        data-action="accept">
+                                    {% trans "Accepter" %}
+                                </button>
+                                <button class="btn btn-sm btn-danger review-request" 
+                                        data-request-id="{{ request.id }}"
+                                        data-action="reject">
+                                    {% trans "Rejeter" %}
+                                </button>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <!-- Pagination -->
+            {% if is_paginated %}
+            <nav class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}">
+                            {% trans "Précédent" %}
+                        </a>
+                    </li>
+                    {% endif %}
+                    
+                    {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                    <li class="page-item active">
+                        <span class="page-link">{{ num }}</span>
+                    </li>
+                    {% else %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ num }}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}">
+                            {{ num }}
+                        </a>
+                    </li>
+                    {% endif %}
+                    {% endfor %}
+                    
+                    {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}">
+                            {% trans "Suivant" %}
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+            {% else %}
+            <div class="alert alert-info">
+                {% if user.profile.is_mentor %}
+                {% trans "Vous n'avez pas encore fait de demande de mentorat." %}
+                {% else %}
+                {% trans "Vous n'avez pas encore reçu de demande de mentorat." %}
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const reviewButtons = document.querySelectorAll('.review-request');
+    
+    reviewButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const requestId = this.dataset.requestId;
+            const action = this.dataset.action;
+            const status = action === 'accept' ? 'accepted' : 'rejected';
+            
+            fetch(`/api/mentor-requests/${requestId}/review/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                },
+                body: JSON.stringify({ status: status })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status) {
+                    window.location.reload();
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert("Une erreur s'est produite lors du traitement de la demande.");
+            });
+        });
+    });
+});
+</script>
+{% endblock %}

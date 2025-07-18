@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% load static %}
+
+{% block title %}Mon Profil - Community Lab{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <!-- Profile Summary -->
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-body text-center">
+                    {% if user.profile.profile_picture %}
+                        <img src="{{ user.profile.profile_picture.url }}" class="rounded-circle mb-3" width="150" alt="Photo de profil">
+                    {% else %}
+                        <img src="{% static 'images/default-profile.png' %}" class="rounded-circle mb-3" width="150" alt="Photo de profil par défaut">
+                    {% endif %}
+                    <h4>{{ user.get_full_name }}</h4>
+                    <p class="text-muted">{{ user.profile.get_user_type_display }}</p>
+                    <p class="mb-2">
+                        <i class="fas fa-envelope"></i> {{ user.email }}
+                    </p>
+                    {% if user.profile.phone_number %}
+                        <p class="mb-2">
+                            <i class="fas fa-phone"></i> {{ user.profile.phone_number }}
+                        </p>
+                    {% endif %}
+                    {% if user.profile.linkedin_profile %}
+                        <a href="{{ user.profile.linkedin_profile }}" class="btn btn-outline-primary btn-sm" target="_blank">
+                            <i class="fab fa-linkedin"></i> LinkedIn
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Statistics -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Statistiques</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col">
+                            <h4>{{ enrolled_courses.count }}</h4>
+                            <small class="text-muted">Cours suivis</small>
+                        </div>
+                        <div class="col">
+                            <h4>{{ registered_trainings.count }}</h4>
+                            <small class="text-muted">Formations</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Profile Edit Form -->
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Modifier mon profil</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                {{ user_form.first_name|crispy }}
+                                {{ user_form.last_name|crispy }}
+                                {{ user_form.email|crispy }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ user_form.username|crispy }}
+                                {{ profile_form.phone_number|crispy }}
+                                {{ profile_form.linkedin_profile|crispy }}
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-12">
+                                {{ user_form.bio|crispy }}
+                                {{ profile_form.address|crispy }}
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                {{ user_form.profile_picture|crispy }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ profile_form.organization|crispy }}
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Enregistrer les modifications
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

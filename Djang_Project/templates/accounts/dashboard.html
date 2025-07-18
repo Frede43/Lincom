@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Tableau de bord - Community Lab{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3">
+            <div class="card mb-4">
+                <div class="card-body text-center">
+                    {% if user.profile.profile_picture %}
+                        <img src="{{ user.profile.profile_picture.url }}" class="rounded-circle mb-3" width="150" alt="Photo de profil">
+                    {% else %}
+                        <img src="{% static 'images/default-profile.png' %}" class="rounded-circle mb-3" width="150" alt="Photo de profil par défaut">
+                    {% endif %}
+                    <h5 class="card-title">{{ user.get_full_name }}</h5>
+                    <p class="text-muted">{{ user.profile.get_user_type_display }}</p>
+                    <a href="{% url 'accounts:profile' %}" class="btn btn-outline-primary btn-sm">
+                        <i class="fas fa-edit"></i> Modifier le profil
+                    </a>
+                </div>
+            </div>
+            
+            <div class="list-group mb-4">
+                <a href="#" class="list-group-item list-group-item-action active">
+                    <i class="fas fa-tachometer-alt"></i> Tableau de bord
+                </a>
+                <a href="{% url 'learning:course_list' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-graduation-cap"></i> Mes cours
+                </a>
+                <a href="{% url 'messaging:inbox' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-envelope"></i> Messages
+                </a>
+                <a href="{% url 'accounts:settings' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-cog"></i> Paramètres
+                </a>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-md-9">
+            <!-- Welcome Message -->
+            <div class="alert alert-info">
+                <h4 class="alert-heading">Bienvenue, {{ user.first_name }}!</h4>
+                <p>Voici un aperçu de vos activités récentes sur Community Lab.</p>
+            </div>
+
+            <div class="row">
+                <!-- Statistics -->
+                <div class="col-md-4 mb-4">
+                    <div class="card border-primary">
+                        <div class="card-body text-center">
+                            <h5 class="card-title">Cours suivis</h5>
+                            <h2 class="display-4">{{ enrolled_courses.count }}</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="card border-success">
+                        <div class="card-body text-center">
+                            <h5 class="card-title">Formations</h5>
+                            <h2 class="display-4">{{ registered_trainings.count }}</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="card border-info">
+                        <div class="card-body text-center">
+                            <h5 class="card-title">Certificats</h5>
+                            <h2 class="display-4">0</h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Courses -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Cours récents</h5>
+                </div>
+                <div class="card-body">
+                    {% if enrolled_courses %}
+                        <div class="list-group">
+                            {% for course in enrolled_courses %}
+                                <a href="{% url 'learning:course_detail' course.id %}" class="list-group-item list-group-item-action">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1">{{ course.title }}</h6>
+                                        <small class="text-muted">Progression: {{ course.get_progress }}%</small>
+                                    </div>
+                                    <p class="mb-1">{{ course.description|truncatewords:20 }}</p>
+                                </a>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted">Vous n'êtes inscrit à aucun cours pour le moment.</p>
+                        <a href="{% url 'learning:course_list' %}" class="btn btn-primary">
+                            <i class="fas fa-search"></i> Découvrir les cours
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Recent Trainings -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Formations à venir</h5>
+                </div>
+                <div class="card-body">
+                    {% if registered_trainings %}
+                        <div class="list-group">
+                            {% for training in registered_trainings %}
+                                <a href="{% url 'learning:training_detail' training.id %}" class="list-group-item list-group-item-action">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1">{{ training.title }}</h6>
+                                        <small class="text-muted">{{ training.start_date|date:"d/m/Y" }}</small>
+                                    </div>
+                                    <p class="mb-1">{{ training.description|truncatewords:20 }}</p>
+                                    <small class="text-muted">
+                                        Statut: {{ training.get_status_display }}
+                                    </small>
+                                </a>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted">Vous n'êtes inscrit à aucune formation pour le moment.</p>
+                        <a href="{% url 'learning:training_list' %}" class="btn btn-primary">
+                            <i class="fas fa-calendar-alt"></i> Voir les formations
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

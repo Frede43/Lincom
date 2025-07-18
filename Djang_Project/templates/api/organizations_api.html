@@ -1,0 +1,451 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Organizations & Teams API Documentation | {{ block.super }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .api-section {
+        margin-bottom: 2rem;
+        padding: 1.5rem;
+        border-radius: 0.5rem;
+        background: #fff;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .endpoint {
+        border-left: 4px solid #3498db;
+        padding: 1rem;
+        margin: 1rem 0;
+        background: #f8f9fa;
+    }
+    .method {
+        display: inline-block;
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.25rem;
+        font-weight: bold;
+        margin-right: 0.5rem;
+    }
+    .get { background: #28a745; color: white; }
+    .post { background: #007bff; color: white; }
+    .put { background: #ffc107; color: black; }
+    .delete { background: #dc3545; color: white; }
+    .patch { background: #6c757d; color: white; }
+    .endpoint-url {
+        font-family: monospace;
+        padding: 0.25rem;
+        background: #e9ecef;
+        border-radius: 0.25rem;
+        cursor: pointer;
+    }
+    .org-note {
+        background: #e8f4f8;
+        border: 1px solid #bee5eb;
+        padding: 1rem;
+        border-radius: 0.25rem;
+        margin-bottom: 1.5rem;
+    }
+    .response-example {
+        background: #272822;
+        color: #f8f8f2;
+        padding: 1rem;
+        border-radius: 0.25rem;
+        margin-top: 1rem;
+        font-family: monospace;
+    }
+    .role-type {
+        display: inline-block;
+        padding: 0.2rem 0.5rem;
+        border-radius: 0.25rem;
+        font-size: 0.8rem;
+        margin-right: 0.5rem;
+    }
+    .admin { background: #dc3545; color: white; }
+    .manager { background: #007bff; color: white; }
+    .member { background: #28a745; color: white; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h1 class="mb-4">Organizations & Teams API Documentation</h1>
+
+    <div class="org-note">
+        <h5><i class="fas fa-users"></i> Role Types</h5>
+        <p class="mb-0">
+            Available roles:
+            <span class="role-type admin">Admin</span>
+            <span class="role-type manager">Manager</span>
+            <span class="role-type member">Member</span>
+        </p>
+    </div>
+
+    <!-- Organization Management -->
+    <div class="api-section">
+        <h2>Organization Management</h2>
+
+        <!-- Create Organization -->
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <span class="endpoint-url">/api/organizations/</span>
+            <p>Create a new organization</p>
+
+            <h6>Request Body:</h6>
+            <div class="response-example">
+                <pre>{
+    "name": "TechHub Burundi",
+    "description": "Centre d'innovation technologique",
+    "industry": "technology",
+    "size": "10-50",
+    "location": {
+        "address": "123 Avenue de l'Innovation",
+        "city": "Bujumbura",
+        "country": "Burundi"
+    },
+    "contact": {
+        "email": "contact@techhub.bi",
+        "phone": "+257123456789"
+    },
+    "settings": {
+        "allow_member_invites": true,
+        "default_role": "member"
+    },
+    "branding": {
+        "logo_url": "https://example.com/logo.png",
+        "primary_color": "#007bff"
+    }
+}</pre>
+            </div>
+
+            <h6>Response:</h6>
+            <div class="response-example">
+                <pre>{
+    "id": "org-123",
+    "name": "TechHub Burundi",
+    "slug": "techhub-burundi",
+    "created_at": "2024-01-19T14:00:00Z",
+    "owner": {
+        "id": "user-456",
+        "name": "Alice Smith"
+    },
+    "member_count": 1,
+    "subscription_status": "active"
+}</pre>
+            </div>
+        </div>
+
+        <!-- Update Organization -->
+        <div class="endpoint">
+            <span class="method put">PUT</span>
+            <span class="endpoint-url">/api/organizations/{org_id}/</span>
+            <p>Update organization details</p>
+        </div>
+
+        <!-- List Organizations -->
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <span class="endpoint-url">/api/organizations/</span>
+            <p>List organizations</p>
+
+            <h6>Query Parameters:</h6>
+            <table class="table params-table">
+                <thead>
+                    <tr>
+                        <th>Parameter</th>
+                        <th>Type</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>industry</td>
+                        <td>string</td>
+                        <td>Filter by industry</td>
+                    </tr>
+                    <tr>
+                        <td>size</td>
+                        <td>string</td>
+                        <td>Filter by organization size</td>
+                    </tr>
+                    <tr>
+                        <td>location</td>
+                        <td>string</td>
+                        <td>Filter by location</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Team Management -->
+    <div class="api-section">
+        <h2>Team Management</h2>
+
+        <!-- Create Team -->
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <span class="endpoint-url">/api/organizations/{org_id}/teams/</span>
+            <p>Create a new team</p>
+
+            <h6>Request Body:</h6>
+            <div class="response-example">
+                <pre>{
+    "name": "Équipe Développement",
+    "description": "Équipe de développement web",
+    "members": [
+        {
+            "user_id": "user-123",
+            "role": "team_lead"
+        }
+    ],
+    "settings": {
+        "visibility": "private",
+        "join_policy": "invite_only"
+    }
+}</pre>
+            </div>
+        </div>
+
+        <!-- List Teams -->
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <span class="endpoint-url">/api/organizations/{org_id}/teams/</span>
+            <p>List organization teams</p>
+        </div>
+    </div>
+
+    <!-- Member Management -->
+    <div class="api-section">
+        <h2>Member Management</h2>
+
+        <!-- Invite Member -->
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <span class="endpoint-url">/api/organizations/{org_id}/invites/</span>
+            <p>Invite new members</p>
+
+            <h6>Request Body:</h6>
+            <div class="response-example">
+                <pre>{
+    "invites": [
+        {
+            "email": "jean@example.com",
+            "role": "member",
+            "teams": ["team-123", "team-456"]
+        }
+    ],
+    "message": "Rejoignez notre équipe!",
+    "expires_in": 7  // days
+}</pre>
+            </div>
+        </div>
+
+        <!-- List Members -->
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <span class="endpoint-url">/api/organizations/{org_id}/members/</span>
+            <p>List organization members</p>
+        </div>
+    </div>
+
+    <!-- Role Management -->
+    <div class="api-section">
+        <h2>Role Management</h2>
+
+        <!-- Create Role -->
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <span class="endpoint-url">/api/organizations/{org_id}/roles/</span>
+            <p>Create custom role</p>
+
+            <h6>Request Body:</h6>
+            <div class="response-example">
+                <pre>{
+    "name": "Project Manager",
+    "description": "Gestionnaire de projets",
+    "permissions": [
+        "view_projects",
+        "create_projects",
+        "manage_team_members"
+    ],
+    "scope": {
+        "teams": ["team-123"],
+        "projects": ["project-456"]
+    }
+}</pre>
+            </div>
+        </div>
+
+        <!-- List Roles -->
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <span class="endpoint-url">/api/organizations/{org_id}/roles/</span>
+            <p>List organization roles</p>
+        </div>
+    </div>
+
+    <!-- Organization Settings -->
+    <div class="api-section">
+        <h2>Organization Settings</h2>
+
+        <!-- Update Settings -->
+        <div class="endpoint">
+            <span class="method patch">PATCH</span>
+            <span class="endpoint-url">/api/organizations/{org_id}/settings/</span>
+            <p>Update organization settings</p>
+
+            <h6>Request Body:</h6>
+            <div class="response-example">
+                <pre>{
+    "security": {
+        "two_factor_required": true,
+        "session_timeout": 3600,
+        "password_policy": {
+            "min_length": 8,
+            "require_special_chars": true
+        }
+    },
+    "branding": {
+        "logo_url": "https://example.com/logo.png",
+        "colors": {
+            "primary": "#007bff",
+            "secondary": "#6c757d"
+        }
+    },
+    "notifications": {
+        "email_digest": "daily",
+        "slack_integration": true
+    }
+}</pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- Organization Analytics -->
+    <div class="api-section">
+        <h2>Organization Analytics</h2>
+
+        <!-- Get Analytics -->
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <span class="endpoint-url">/api/organizations/{org_id}/analytics/</span>
+            <p>Get organization analytics</p>
+
+            <h6>Response:</h6>
+            <div class="response-example">
+                <pre>{
+    "overview": {
+        "total_members": 50,
+        "active_members": 45,
+        "total_teams": 8
+    },
+    "activity": {
+        "projects_created": 25,
+        "tasks_completed": 150,
+        "documents_shared": 300
+    },
+    "team_performance": [
+        {
+            "team_id": "team-123",
+            "name": "Équipe Développement",
+            "completed_tasks": 75,
+            "active_projects": 5
+        }
+    ],
+    "resource_usage": {
+        "storage_used": 5000000,  // bytes
+        "api_calls": 10000,
+        "bandwidth": 20000000  // bytes
+    }
+}</pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- Organization Audit Log -->
+    <div class="api-section">
+        <h2>Organization Audit Log</h2>
+
+        <!-- Get Audit Log -->
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <span class="endpoint-url">/api/organizations/{org_id}/audit-log/</span>
+            <p>Get organization audit log</p>
+
+            <h6>Query Parameters:</h6>
+            <table class="table params-table">
+                <thead>
+                    <tr>
+                        <th>Parameter</th>
+                        <th>Type</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>action</td>
+                        <td>string</td>
+                        <td>Filter by action type</td>
+                    </tr>
+                    <tr>
+                        <td>user_id</td>
+                        <td>string</td>
+                        <td>Filter by user</td>
+                    </tr>
+                    <tr>
+                        <td>date_range</td>
+                        <td>string</td>
+                        <td>Filter by date range</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h6>Response:</h6>
+            <div class="response-example">
+                <pre>{
+    "entries": [
+        {
+            "id": "log-123",
+            "timestamp": "2024-01-19T14:00:00Z",
+            "action": "member_invited",
+            "actor": {
+                "id": "user-456",
+                "name": "Alice Smith"
+            },
+            "target": {
+                "type": "user",
+                "id": "user-789",
+                "email": "jean@example.com"
+            },
+            "metadata": {
+                "role": "member",
+                "teams": ["team-123"]
+            }
+        }
+    ],
+    "total": 150,
+    "page": 1,
+    "per_page": 50
+}</pre>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Add copy functionality for endpoint URLs
+    document.querySelectorAll('.endpoint-url').forEach(element => {
+        element.addEventListener('click', function() {
+            const text = this.textContent;
+            navigator.clipboard.writeText(text).then(() => {
+                const originalText = this.textContent;
+                this.textContent = 'Copied!';
+                setTimeout(() => {
+                    this.textContent = originalText;
+                }, 1000);
+            });
+        });
+    });
+</script>
+{% endblock %}

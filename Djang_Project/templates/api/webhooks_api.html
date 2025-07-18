@@ -1,0 +1,316 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Webhooks & Integration API Documentation | {{ block.super }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .api-section {
+        margin-bottom: 2rem;
+        padding: 1.5rem;
+        border-radius: 0.5rem;
+        background: #fff;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .endpoint {
+        border-left: 4px solid #3498db;
+        padding: 1rem;
+        margin: 1rem 0;
+        background: #f8f9fa;
+    }
+    .method {
+        display: inline-block;
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.25rem;
+        font-weight: bold;
+        margin-right: 0.5rem;
+    }
+    .get { background: #28a745; color: white; }
+    .post { background: #007bff; color: white; }
+    .put { background: #ffc107; color: black; }
+    .delete { background: #dc3545; color: white; }
+    .endpoint-url {
+        font-family: monospace;
+        padding: 0.25rem;
+        background: #e9ecef;
+        border-radius: 0.25rem;
+        cursor: pointer;
+    }
+    .webhook-note {
+        background: #fff3cd;
+        border: 1px solid #ffeeba;
+        padding: 1rem;
+        border-radius: 0.25rem;
+        margin-bottom: 1.5rem;
+    }
+    .response-example {
+        background: #272822;
+        color: #f8f8f2;
+        padding: 1rem;
+        border-radius: 0.25rem;
+        margin-top: 1rem;
+        font-family: monospace;
+    }
+    .event-type {
+        display: inline-block;
+        padding: 0.2rem 0.5rem;
+        border-radius: 0.25rem;
+        font-size: 0.8rem;
+        margin-right: 0.5rem;
+        background: #e9ecef;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h1 class="mb-4">Webhooks & Integration API Documentation</h1>
+
+    <div class="webhook-note">
+        <h5><i class="fas fa-plug"></i> Webhook Security</h5>
+        <p class="mb-0">All webhook requests are signed using HMAC-SHA256. Verify the signature in the X-Signature header to ensure request authenticity.</p>
+    </div>
+
+    <!-- Webhook Configuration -->
+    <div class="api-section">
+        <h2>Webhook Configuration</h2>
+
+        <!-- Create Webhook -->
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <span class="endpoint-url">/api/webhooks/</span>
+            <p>Create a new webhook endpoint</p>
+
+            <h6>Request Body:</h6>
+            <div class="response-example">
+                <pre>{
+    "url": "https://your-domain.com/webhook",
+    "description": "Notification endpoint for startup events",
+    "events": [
+        "startup.created",
+        "startup.updated",
+        "project.milestone"
+    ],
+    "active": true,
+    "secret": "your-webhook-secret"
+}</pre>
+            </div>
+
+            <h6>Response:</h6>
+            <div class="response-example">
+                <pre>{
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "url": "https://your-domain.com/webhook",
+    "description": "Notification endpoint for startup events",
+    "events": [
+        "startup.created",
+        "startup.updated",
+        "project.milestone"
+    ],
+    "active": true,
+    "created_at": "2024-01-19T14:00:00Z"
+}</pre>
+            </div>
+        </div>
+
+        <!-- List Webhooks -->
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <span class="endpoint-url">/api/webhooks/</span>
+            <p>List all webhook configurations</p>
+        </div>
+    </div>
+
+    <!-- Event Types -->
+    <div class="api-section">
+        <h2>Event Types</h2>
+
+        <!-- List Event Types -->
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <span class="endpoint-url">/api/webhooks/events/</span>
+            <p>List available webhook event types</p>
+
+            <h6>Response:</h6>
+            <div class="response-example">
+                <pre>{
+    "event_types": [
+        {
+            "name": "startup.created",
+            "description": "Triggered when a new startup is created",
+            "payload_example": {
+                "startup_id": "123",
+                "name": "TechStart Burundi",
+                "created_at": "2024-01-19T14:00:00Z"
+            }
+        },
+        {
+            "name": "project.milestone",
+            "description": "Triggered when a project reaches a milestone",
+            "payload_example": {
+                "project_id": "456",
+                "milestone": "MVP Launch",
+                "completed_at": "2024-01-19T14:00:00Z"
+            }
+        }
+    ]
+}</pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- Webhook Deliveries -->
+    <div class="api-section">
+        <h2>Webhook Deliveries</h2>
+
+        <!-- List Deliveries -->
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <span class="endpoint-url">/api/webhooks/{webhook_id}/deliveries/</span>
+            <p>List webhook delivery attempts</p>
+
+            <h6>Query Parameters:</h6>
+            <table class="table params-table">
+                <thead>
+                    <tr>
+                        <th>Parameter</th>
+                        <th>Type</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>status</td>
+                        <td>string</td>
+                        <td>Filter by status (success, failed)</td>
+                    </tr>
+                    <tr>
+                        <td>event_type</td>
+                        <td>string</td>
+                        <td>Filter by event type</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h6>Response:</h6>
+            <div class="response-example">
+                <pre>{
+    "deliveries": [
+        {
+            "id": "delivery-123",
+            "event_type": "startup.created",
+            "timestamp": "2024-01-19T14:00:00Z",
+            "status": "success",
+            "response_code": 200,
+            "response_body": "...",
+            "retry_count": 0
+        }
+    ]
+}</pre>
+            </div>
+        </div>
+
+        <!-- Retry Delivery -->
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <span class="endpoint-url">/api/webhooks/deliveries/{delivery_id}/retry/</span>
+            <p>Retry a failed webhook delivery</p>
+        </div>
+    </div>
+
+    <!-- OAuth Integration -->
+    <div class="api-section">
+        <h2>OAuth Integration</h2>
+
+        <!-- Initialize OAuth -->
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <span class="endpoint-url">/api/oauth/initialize/</span>
+            <p>Initialize OAuth flow for third-party integration</p>
+
+            <h6>Request Body:</h6>
+            <div class="response-example">
+                <pre>{
+    "provider": "google",
+    "scopes": ["calendar", "drive"],
+    "redirect_uri": "https://your-app.com/oauth/callback"
+}</pre>
+            </div>
+
+            <h6>Response:</h6>
+            <div class="response-example">
+                <pre>{
+    "authorization_url": "https://accounts.google.com/o/oauth2/auth?...",
+    "state": "random-state-token"
+}</pre>
+            </div>
+        </div>
+
+        <!-- OAuth Callback -->
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <span class="endpoint-url">/api/oauth/callback/</span>
+            <p>Handle OAuth callback</p>
+
+            <h6>Request Body:</h6>
+            <div class="response-example">
+                <pre>{
+    "code": "authorization-code",
+    "state": "random-state-token"
+}</pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- Integration Settings -->
+    <div class="api-section">
+        <h2>Integration Settings</h2>
+
+        <!-- Update Settings -->
+        <div class="endpoint">
+            <span class="method put">PUT</span>
+            <span class="endpoint-url">/api/integrations/settings/</span>
+            <p>Update integration settings</p>
+
+            <h6>Request Body:</h6>
+            <div class="response-example">
+                <pre>{
+    "retry_attempts": 3,
+    "retry_delay": 300,  // seconds
+    "timeout": 30,  // seconds
+    "batch_size": 100,
+    "notifications": {
+        "email": true,
+        "slack": false
+    }
+}</pre>
+            </div>
+        </div>
+
+        <!-- Get Settings -->
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <span class="endpoint-url">/api/integrations/settings/</span>
+            <p>Get current integration settings</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Add copy functionality for endpoint URLs
+    document.querySelectorAll('.endpoint-url').forEach(element => {
+        element.addEventListener('click', function() {
+            const text = this.textContent;
+            navigator.clipboard.writeText(text).then(() => {
+                const originalText = this.textContent;
+                this.textContent = 'Copied!';
+                setTimeout(() => {
+                    this.textContent = originalText;
+                }, 1000);
+            });
+        });
+    });
+</script>
+{% endblock %}

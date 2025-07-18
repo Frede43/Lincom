@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %}
+    {% if form.instance.pk %}
+        Modifier le contenu
+    {% else %}
+        Ajouter un nouveau contenu
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        {% if form.instance.pk %}
+                            Modifier le contenu
+                        {% else %}
+                            Ajouter un nouveau contenu
+                        {% endif %}
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        {{ form|crispy }}
+                        <div class="mt-4">
+                            <button type="submit" class="btn btn-primary">
+                                {% if form.instance.pk %}
+                                    Mettre à jour
+                                {% else %}
+                                    Ajouter
+                                {% endif %}
+                            </button>
+                            <a href="{% url 'courses:course_detail' slug=view.module.course.slug %}" class="btn btn-secondary">
+                                Annuler
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const contentTypeSelect = document.getElementById('id_content_type');
+        const textField = document.getElementById('div_id_text');
+        const videoUrlField = document.getElementById('div_id_video_url');
+        const fileField = document.getElementById('div_id_file');
+
+        function updateFieldVisibility() {
+            const selectedType = contentTypeSelect.value;
+            
+            textField.style.display = selectedType === 'text' ? 'block' : 'none';
+            videoUrlField.style.display = selectedType === 'video' ? 'block' : 'none';
+            fileField.style.display = selectedType === 'file' ? 'block' : 'none';
+        }
+
+        contentTypeSelect.addEventListener('change', updateFieldVisibility);
+        updateFieldVisibility();
+    });
+</script>
+{% endblock %}
+{% endblock %}

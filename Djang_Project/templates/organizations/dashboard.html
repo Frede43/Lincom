@@ -1,0 +1,272 @@
+{% extends "organizations/base_organizations.html" %}
+
+{% block title %}Tableau de Bord | {{ block.super }}{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+    .metric-card {
+        border-radius: 1rem;
+        transition: transform 0.2s;
+    }
+    .metric-card:hover {
+        transform: translateY(-5px);
+    }
+    .metric-icon {
+        font-size: 2rem;
+        margin-bottom: 1rem;
+    }
+    .metric-value {
+        font-size: 2.5rem;
+        font-weight: bold;
+    }
+    .metric-label {
+        font-size: 1rem;
+        color: #6c757d;
+    }
+    .activity-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+    }
+    .chart-container {
+        position: relative;
+        height: 300px;
+    }
+</style>
+{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">Tableau de Bord</li>
+{% endblock %}
+
+{% block organization_content %}
+<!-- En-tête -->
+<div class="row mb-4">
+    <div class="col">
+        <h1>Tableau de Bord</h1>
+        <p class="text-muted">
+            Dernière mise à jour: {{ metrics.last_updated|date:"d F Y H:i" }}
+        </p>
+    </div>
+    <div class="col-auto">
+        <button class="btn btn-primary" onclick="refreshMetrics()">
+            <i class="fas fa-sync-alt"></i> Actualiser
+        </button>
+    </div>
+</div>
+
+<!-- Métriques principales -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card metric-card bg-primary text-white">
+            <div class="card-body text-center">
+                <div class="metric-icon">
+                    <i class="fas fa-bullhorn"></i>
+                </div>
+                <div class="metric-value">{{ metrics.active_project_calls }}</div>
+                <div class="metric-label">Appels à Projets Actifs</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card metric-card bg-success text-white">
+            <div class="card-body text-center">
+                <div class="metric-icon">
+                    <i class="fas fa-trophy"></i>
+                </div>
+                <div class="metric-value">{{ metrics.active_competitions }}</div>
+                <div class="metric-label">Compétitions Actives</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card metric-card bg-info text-white">
+            <div class="card-body text-center">
+                <div class="metric-icon">
+                    <i class="fas fa-file-alt"></i>
+                </div>
+                <div class="metric-value">{{ metrics.total_submissions }}</div>
+                <div class="metric-label">Soumissions Totales</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card metric-card bg-warning text-white">
+            <div class="card-body text-center">
+                <div class="metric-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="metric-value">{{ metrics.total_participants }}</div>
+                <div class="metric-label">Participants Totaux</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Graphiques -->
+<div class="row mb-4">
+    <!-- Soumissions par mois -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Soumissions par Mois</h5>
+                <div class="chart-container">
+                    <canvas id="submissionsChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Participants par type de compétition -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Participants par Type de Compétition</h5>
+                <div class="chart-container">
+                    <canvas id="participantsChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Activité récente et actions rapides -->
+<div class="row">
+    <!-- Activité récente -->
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Activité Récente</h5>
+                
+                {% if recent_activities %}
+                <div class="list-group list-group-flush">
+                    {% for activity in recent_activities %}
+                    <div class="list-group-item">
+                        <div class="d-flex">
+                            <div class="me-3">
+                                {% if activity.type == 'submission' %}
+                                <div class="activity-icon bg-info text-white">
+                                    <i class="fas fa-file-alt"></i>
+                                </div>
+                                {% elif activity.type == 'registration' %}
+                                <div class="activity-icon bg-success text-white">
+                                    <i class="fas fa-user-plus"></i>
+                                </div>
+                                {% elif activity.type == 'review' %}
+                                <div class="activity-icon bg-warning text-white">
+                                    <i class="fas fa-star"></i>
+                                </div>
+                                {% endif %}
+                            </div>
+                            <div>
+                                <h6 class="mb-1">{{ activity.title }}</h6>
+                                <p class="mb-1 text-muted">{{ activity.description }}</p>
+                                <small class="text-muted">{{ activity.timestamp|timesince }}</small>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-muted">Aucune activité récente.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Actions rapides -->
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Actions Rapides</h5>
+                
+                <div class="d-grid gap-2">
+                    <a href="{% url 'organizations:project_call_create' %}" class="btn btn-outline-primary">
+                        <i class="fas fa-plus"></i> Nouvel Appel à Projets
+                    </a>
+                    <a href="{% url 'organizations:competition_create' %}" class="btn btn-outline-success">
+                        <i class="fas fa-plus"></i> Nouvelle Compétition
+                    </a>
+                    <a href="{% url 'organizations:project_call_list' %}" class="btn btn-outline-info">
+                        <i class="fas fa-list"></i> Gérer les Appels à Projets
+                    </a>
+                    <a href="{% url 'organizations:competition_list' %}" class="btn btn-outline-warning">
+                        <i class="fas fa-list"></i> Gérer les Compétitions
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Graphique des soumissions
+    const submissionsCtx = document.getElementById('submissionsChart').getContext('2d');
+    new Chart(submissionsCtx, {
+        type: 'line',
+        data: {
+            labels: {{ submission_months|safe }},
+            datasets: [{
+                label: 'Soumissions',
+                data: {{ submission_counts|safe }},
+                borderColor: 'rgb(54, 162, 235)',
+                tension: 0.1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
+                    }
+                }
+            }
+        }
+    });
+
+    // Graphique des participants
+    const participantsCtx = document.getElementById('participantsChart').getContext('2d');
+    new Chart(participantsCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Pitch', 'Hackathon', 'Challenge'],
+            datasets: [{
+                data: {{ participants_by_type|safe }},
+                backgroundColor: [
+                    'rgb(255, 99, 132)',
+                    'rgb(54, 162, 235)',
+                    'rgb(255, 205, 86)'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+});
+
+function refreshMetrics() {
+    // Fonction pour actualiser les métriques via AJAX
+    fetch('{% url "organizations:refresh_metrics" %}')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            }
+        });
+}
+</script>
+{% endblock %}

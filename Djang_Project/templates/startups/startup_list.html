@@ -1,0 +1,136 @@
+{% extends "startups/base_startups.html" %}
+
+{% block title %}Startups | {{ block.super }}{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">Startups</li>
+{% endblock %}
+
+{% block startup_content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h1>Startups</h1>
+    </div>
+    <div class="col-md-4 text-end">
+        {% if user.is_authenticated %}
+        <a href="{% url 'startups:startup_create' %}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Créer une Startup
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Filtres -->
+<div class="row mb-4">
+    <div class="col-md-12">
+        <form method="get" class="card card-body">
+            <div class="row">
+                <div class="col-md-3">
+                    <label for="industry" class="form-label">Industrie</label>
+                    <select name="industry" id="industry" class="form-select">
+                        <option value="">Toutes</option>
+                        {% for industry in industries %}
+                        <option value="{{ industry.id }}" {% if selected_industry == industry.id %}selected{% endif %}>
+                            {{ industry.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="stage" class="form-label">Stade</label>
+                    <select name="stage" id="stage" class="form-select">
+                        <option value="">Tous</option>
+                        {% for stage in stages %}
+                        <option value="{{ stage.id }}" {% if selected_stage == stage.id %}selected{% endif %}>
+                            {{ stage.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="city" class="form-label">Ville</label>
+                    <select name="city" id="city" class="form-select">
+                        <option value="">Toutes</option>
+                        {% for city in cities %}
+                        <option value="{{ city }}" {% if selected_city == city %}selected{% endif %}>
+                            {{ city }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">Filtrer</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Liste des startups -->
+<div class="row">
+    {% for startup in startups %}
+    <div class="col-md-4 mb-4">
+        <div class="card startup-card">
+            {% if startup.logo %}
+            <img src="{{ startup.logo.url }}" class="card-img-top startup-logo" alt="{{ startup.name }}">
+            {% else %}
+            <div class="card-img-top startup-logo bg-light d-flex align-items-center justify-content-center">
+                <i class="fas fa-building fa-3x text-muted"></i>
+            </div>
+            {% endif %}
+            <div class="card-body">
+                <h5 class="card-title">{{ startup.name }}</h5>
+                <p class="card-text text-muted">{{ startup.tagline }}</p>
+                <div class="startup-stats mb-3">
+                    <div><i class="fas fa-users"></i> {{ startup.team_size }} membres</div>
+                    <div><i class="fas fa-map-marker-alt"></i> {{ startup.city }}</div>
+                    {% if startup.funding_raised %}
+                    <div><i class="fas fa-dollar-sign"></i> {{ startup.funding_raised|floatformat:0 }} USD levés</div>
+                    {% endif %}
+                </div>
+                <a href="{% url 'startups:startup_detail' startup.slug %}" class="btn btn-outline-primary">
+                    En savoir plus
+                </a>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="alert alert-info">
+            Aucune startup ne correspond à vos critères de recherche.
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Pagination -->
+{% if is_paginated %}
+<nav aria-label="Page navigation" class="mt-4">
+    <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}
+        <li class="page-item">
+            <a class="page-link" href="?page=1">&laquo; Première</a>
+        </li>
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Précédente</a>
+        </li>
+        {% endif %}
+
+        <li class="page-item disabled">
+            <span class="page-link">
+                Page {{ page_obj.number }} sur {{ page_obj.paginator.num_pages }}
+            </span>
+        </li>
+
+        {% if page_obj.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.next_page_number }}">Suivante</a>
+        </li>
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Dernière &raquo;</a>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}

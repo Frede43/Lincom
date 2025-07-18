@@ -1,0 +1,333 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Startups API Documentation | {{ block.super }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .api-section {
+        margin-bottom: 2rem;
+        padding: 1.5rem;
+        border-radius: 0.5rem;
+        background: #fff;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .endpoint {
+        border-left: 4px solid #3498db;
+        padding: 1rem;
+        margin: 1rem 0;
+        background: #f8f9fa;
+    }
+    .method {
+        display: inline-block;
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.25rem;
+        font-weight: bold;
+        margin-right: 0.5rem;
+    }
+    .get { background: #28a745; color: white; }
+    .post { background: #007bff; color: white; }
+    .put { background: #ffc107; color: black; }
+    .delete { background: #dc3545; color: white; }
+    .patch { background: #6c757d; color: white; }
+    .endpoint-url {
+        font-family: monospace;
+        padding: 0.25rem;
+        background: #e9ecef;
+        border-radius: 0.25rem;
+        cursor: pointer;
+    }
+    .params-table {
+        width: 100%;
+        margin-top: 1rem;
+    }
+    .params-table th {
+        background: #f1f3f5;
+    }
+    .response-example {
+        background: #272822;
+        color: #f8f8f2;
+        padding: 1rem;
+        border-radius: 0.25rem;
+        margin-top: 1rem;
+        font-family: monospace;
+    }
+    .required-badge {
+        background: #dc3545;
+        color: white;
+        padding: 0.1rem 0.4rem;
+        border-radius: 0.25rem;
+        font-size: 0.8rem;
+        margin-left: 0.5rem;
+    }
+    .optional-badge {
+        background: #6c757d;
+        color: white;
+        padding: 0.1rem 0.4rem;
+        border-radius: 0.25rem;
+        font-size: 0.8rem;
+        margin-left: 0.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h1 class="mb-4">Startups API Documentation</h1>
+
+    <!-- Startup Management -->
+    <div class="api-section">
+        <h2>Startup Management</h2>
+
+        <!-- List Startups -->
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <span class="endpoint-url">/api/startups/</span>
+            <p>Retrieve a list of all startups</p>
+
+            <h6>Query Parameters:</h6>
+            <table class="table params-table">
+                <thead>
+                    <tr>
+                        <th>Parameter</th>
+                        <th>Type</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>sector</td>
+                        <td>string</td>
+                        <td>Filter by business sector</td>
+                    </tr>
+                    <tr>
+                        <td>stage</td>
+                        <td>string</td>
+                        <td>Filter by startup stage (idea, early, growth, mature)</td>
+                    </tr>
+                    <tr>
+                        <td>location</td>
+                        <td>string</td>
+                        <td>Filter by location</td>
+                    </tr>
+                    <tr>
+                        <td>search</td>
+                        <td>string</td>
+                        <td>Search in name and description</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="response-example">
+                <pre>{
+    "count": 50,
+    "next": "http://api.example.org/startups/?page=2",
+    "previous": null,
+    "results": [
+        {
+            "id": 1,
+            "name": "TechStart Burundi",
+            "description": "Innovation technologique",
+            "sector": "Technology",
+            "stage": "early",
+            "founded_date": "2023-01-15",
+            "team_size": 10,
+            "location": "Bujumbura",
+            "website": "https://techstart.bi",
+            "social_links": {
+                "linkedin": "https://linkedin.com/company/techstart-burundi",
+                "twitter": "https://twitter.com/techstart_bi"
+            }
+        }
+    ]
+}</pre>
+            </div>
+        </div>
+
+        <!-- Create Startup -->
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <span class="endpoint-url">/api/startups/</span>
+            <p>Create a new startup</p>
+
+            <h6>Request Body:</h6>
+            <table class="table params-table">
+                <thead>
+                    <tr>
+                        <th>Field</th>
+                        <th>Type</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>name <span class="required-badge">Required</span></td>
+                        <td>string</td>
+                        <td>Name of the startup</td>
+                    </tr>
+                    <tr>
+                        <td>description <span class="required-badge">Required</span></td>
+                        <td>string</td>
+                        <td>Detailed description of the startup</td>
+                    </tr>
+                    <tr>
+                        <td>sector <span class="required-badge">Required</span></td>
+                        <td>string</td>
+                        <td>Business sector</td>
+                    </tr>
+                    <tr>
+                        <td>stage <span class="required-badge">Required</span></td>
+                        <td>string</td>
+                        <td>Current stage of the startup</td>
+                    </tr>
+                    <tr>
+                        <td>team_size <span class="optional-badge">Optional</span></td>
+                        <td>integer</td>
+                        <td>Number of team members</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="response-example">
+                <pre>{
+    "name": "TechStart Burundi",
+    "description": "Innovation technologique",
+    "sector": "Technology",
+    "stage": "early",
+    "team_size": 10,
+    "location": "Bujumbura",
+    "website": "https://techstart.bi",
+    "social_links": {
+        "linkedin": "https://linkedin.com/company/techstart-burundi",
+        "twitter": "https://twitter.com/techstart_bi"
+    }
+}</pre>
+            </div>
+        </div>
+
+        <!-- Update Startup -->
+        <div class="endpoint">
+            <span class="method put">PUT</span>
+            <span class="endpoint-url">/api/startups/{id}/</span>
+            <p>Update an existing startup</p>
+        </div>
+
+        <!-- Delete Startup -->
+        <div class="endpoint">
+            <span class="method delete">DELETE</span>
+            <span class="endpoint-url">/api/startups/{id}/</span>
+            <p>Delete a startup</p>
+        </div>
+    </div>
+
+    <!-- Projects -->
+    <div class="api-section">
+        <h2>Projects</h2>
+
+        <!-- List Startup Projects -->
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <span class="endpoint-url">/api/startups/{id}/projects/</span>
+            <p>Retrieve all projects for a specific startup</p>
+
+            <div class="response-example">
+                <pre>{
+    "count": 5,
+    "results": [
+        {
+            "id": 1,
+            "title": "Project Name",
+            "description": "Project Description",
+            "status": "in_progress",
+            "start_date": "2024-01-01",
+            "end_date": "2024-12-31",
+            "technologies": ["Python", "Django", "React"],
+            "team_members": [
+                {
+                    "id": 1,
+                    "name": "John Doe",
+                    "role": "Project Lead"
+                }
+            ]
+        }
+    ]
+}</pre>
+            </div>
+        </div>
+
+        <!-- Create Project -->
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <span class="endpoint-url">/api/startups/{id}/projects/</span>
+            <p>Create a new project for a startup</p>
+        </div>
+    </div>
+
+    <!-- Team Members -->
+    <div class="api-section">
+        <h2>Team Members</h2>
+
+        <!-- List Team Members -->
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <span class="endpoint-url">/api/startups/{id}/team/</span>
+            <p>Retrieve all team members of a startup</p>
+        </div>
+
+        <!-- Add Team Member -->
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <span class="endpoint-url">/api/startups/{id}/team/</span>
+            <p>Add a new team member to the startup</p>
+        </div>
+    </div>
+
+    <!-- Metrics -->
+    <div class="api-section">
+        <h2>Startup Metrics</h2>
+
+        <!-- Get Metrics -->
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <span class="endpoint-url">/api/startups/{id}/metrics/</span>
+            <p>Retrieve metrics for a specific startup</p>
+
+            <div class="response-example">
+                <pre>{
+    "project_stats": {
+        "total_projects": 10,
+        "active_projects": 5,
+        "completed_projects": 3
+    },
+    "competition_stats": {
+        "participations": 8,
+        "wins": 3
+    },
+    "growth_metrics": {
+        "team_growth": 25,
+        "project_success_rate": 80
+    }
+}</pre>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Add copy functionality for endpoint URLs
+    document.querySelectorAll('.endpoint-url').forEach(element => {
+        element.addEventListener('click', function() {
+            const text = this.textContent;
+            navigator.clipboard.writeText(text).then(() => {
+                const originalText = this.textContent;
+                this.textContent = 'Copied!';
+                setTimeout(() => {
+                    this.textContent = originalText;
+                }, 1000);
+            });
+        });
+    });
+</script>
+{% endblock %}

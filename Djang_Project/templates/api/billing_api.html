@@ -1,0 +1,426 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Billing & Subscriptions API Documentation | {{ block.super }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .api-section {
+        margin-bottom: 2rem;
+        padding: 1.5rem;
+        border-radius: 0.5rem;
+        background: #fff;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .endpoint {
+        border-left: 4px solid #3498db;
+        padding: 1rem;
+        margin: 1rem 0;
+        background: #f8f9fa;
+    }
+    .method {
+        display: inline-block;
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.25rem;
+        font-weight: bold;
+        margin-right: 0.5rem;
+    }
+    .get { background: #28a745; color: white; }
+    .post { background: #007bff; color: white; }
+    .put { background: #ffc107; color: black; }
+    .delete { background: #dc3545; color: white; }
+    .patch { background: #6c757d; color: white; }
+    .endpoint-url {
+        font-family: monospace;
+        padding: 0.25rem;
+        background: #e9ecef;
+        border-radius: 0.25rem;
+        cursor: pointer;
+    }
+    .billing-note {
+        background: #e8f4f8;
+        border: 1px solid #bee5eb;
+        padding: 1rem;
+        border-radius: 0.25rem;
+        margin-bottom: 1.5rem;
+    }
+    .response-example {
+        background: #272822;
+        color: #f8f8f2;
+        padding: 1rem;
+        border-radius: 0.25rem;
+        margin-top: 1rem;
+        font-family: monospace;
+    }
+    .plan-type {
+        display: inline-block;
+        padding: 0.2rem 0.5rem;
+        border-radius: 0.25rem;
+        font-size: 0.8rem;
+        margin-right: 0.5rem;
+    }
+    .free { background: #6c757d; color: white; }
+    .pro { background: #007bff; color: white; }
+    .enterprise { background: #dc3545; color: white; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h1 class="mb-4">Billing & Subscriptions API Documentation</h1>
+
+    <div class="billing-note">
+        <h5><i class="fas fa-crown"></i> Plan Types</h5>
+        <p class="mb-0">
+            Available plans:
+            <span class="plan-type free">Gratuit</span>
+            <span class="plan-type pro">Pro</span>
+            <span class="plan-type enterprise">Entreprise</span>
+        </p>
+    </div>
+
+    <!-- Subscription Management -->
+    <div class="api-section">
+        <h2>Subscription Management</h2>
+
+        <!-- Create Subscription -->
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <span class="endpoint-url">/api/billing/subscriptions/</span>
+            <p>Create a new subscription</p>
+
+            <h6>Request Body:</h6>
+            <div class="response-example">
+                <pre>{
+    "plan_id": "plan_pro_monthly",
+    "organization_id": "org-123",
+    "payment_method": {
+        "type": "card",
+        "token": "pm_card_visa"
+    },
+    "billing_address": {
+        "street": "123 Rue du Commerce",
+        "city": "Bujumbura",
+        "country": "Burundi",
+        "postal_code": "12345"
+    },
+    "tax_id": "TAX123456789",
+    "coupon": "WELCOME2024"
+}</pre>
+            </div>
+
+            <h6>Response:</h6>
+            <div class="response-example">
+                <pre>{
+    "id": "sub_123",
+    "plan": {
+        "id": "plan_pro_monthly",
+        "name": "Pro Monthly",
+        "price": 4900,  // in cents
+        "currency": "USD"
+    },
+    "status": "active",
+    "current_period_end": "2024-02-19T14:00:00Z",
+    "cancel_at_period_end": false
+}</pre>
+            </div>
+        </div>
+
+        <!-- Update Subscription -->
+        <div class="endpoint">
+            <span class="method put">PUT</span>
+            <span class="endpoint-url">/api/billing/subscriptions/{subscription_id}/</span>
+            <p>Update subscription</p>
+
+            <h6>Request Body:</h6>
+            <div class="response-example">
+                <pre>{
+    "plan_id": "plan_pro_yearly",
+    "quantity": 10,
+    "payment_method_id": "pm_card_mastercard",
+    "cancel_at_period_end": false
+}</pre>
+            </div>
+        </div>
+
+        <!-- Cancel Subscription -->
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <span class="endpoint-url">/api/billing/subscriptions/{subscription_id}/cancel/</span>
+            <p>Cancel subscription</p>
+
+            <h6>Request Body:</h6>
+            <div class="response-example">
+                <pre>{
+    "reason": "budget_constraints",
+    "feedback": "Service excellent mais trop cher pour nous",
+    "cancel_immediately": false
+}</pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment Methods -->
+    <div class="api-section">
+        <h2>Payment Methods</h2>
+
+        <!-- Add Payment Method -->
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <span class="endpoint-url">/api/billing/payment-methods/</span>
+            <p>Add new payment method</p>
+
+            <h6>Request Body:</h6>
+            <div class="response-example">
+                <pre>{
+    "type": "card",
+    "token": "pm_card_visa",
+    "billing_details": {
+        "name": "Jean Dupont",
+        "email": "jean@example.com",
+        "phone": "+257123456789"
+    },
+    "set_default": true
+}</pre>
+            </div>
+        </div>
+
+        <!-- List Payment Methods -->
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <span class="endpoint-url">/api/billing/payment-methods/</span>
+            <p>List payment methods</p>
+        </div>
+    </div>
+
+    <!-- Invoices -->
+    <div class="api-section">
+        <h2>Invoices</h2>
+
+        <!-- List Invoices -->
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <span class="endpoint-url">/api/billing/invoices/</span>
+            <p>List invoices</p>
+
+            <h6>Query Parameters:</h6>
+            <table class="table params-table">
+                <thead>
+                    <tr>
+                        <th>Parameter</th>
+                        <th>Type</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>status</td>
+                        <td>string</td>
+                        <td>Filter by status</td>
+                    </tr>
+                    <tr>
+                        <td>date_range</td>
+                        <td>string</td>
+                        <td>Filter by date range</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h6>Response:</h6>
+            <div class="response-example">
+                <pre>{
+    "invoices": [
+        {
+            "id": "inv_123",
+            "number": "INV-2024-001",
+            "created_at": "2024-01-19T14:00:00Z",
+            "due_date": "2024-02-19T14:00:00Z",
+            "amount": 4900,
+            "currency": "USD",
+            "status": "paid",
+            "line_items": [
+                {
+                    "description": "Pro Plan - Monthly",
+                    "quantity": 1,
+                    "unit_price": 4900,
+                    "amount": 4900
+                }
+            ],
+            "payment": {
+                "id": "py_123",
+                "method": "card",
+                "last4": "4242"
+            }
+        }
+    ],
+    "total": 12,
+    "page": 1,
+    "per_page": 10
+}</pre>
+            </div>
+        </div>
+
+        <!-- Get Invoice PDF -->
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <span class="endpoint-url">/api/billing/invoices/{invoice_id}/pdf/</span>
+            <p>Download invoice PDF</p>
+        </div>
+    </div>
+
+    <!-- Usage & Metering -->
+    <div class="api-section">
+        <h2>Usage & Metering</h2>
+
+        <!-- Report Usage -->
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <span class="endpoint-url">/api/billing/usage/</span>
+            <p>Report usage for metered billing</p>
+
+            <h6>Request Body:</h6>
+            <div class="response-example">
+                <pre>{
+    "subscription_id": "sub_123",
+    "feature": "api_calls",
+    "quantity": 1000,
+    "timestamp": "2024-01-19T14:00:00Z"
+}</pre>
+            </div>
+        </div>
+
+        <!-- Get Usage -->
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <span class="endpoint-url">/api/billing/usage/{subscription_id}/</span>
+            <p>Get usage statistics</p>
+
+            <h6>Response:</h6>
+            <div class="response-example">
+                <pre>{
+    "current_period": {
+        "start": "2024-01-01T00:00:00Z",
+        "end": "2024-01-31T23:59:59Z",
+        "features": {
+            "api_calls": {
+                "used": 15000,
+                "limit": 50000,
+                "overage": false
+            },
+            "storage": {
+                "used": 5000000,  // bytes
+                "limit": 10000000,
+                "overage": false
+            }
+        }
+    },
+    "historical": [
+        {
+            "period": "2023-12",
+            "features": {
+                "api_calls": 12000,
+                "storage": 4500000
+            }
+        }
+    ]
+}</pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- Billing Settings -->
+    <div class="api-section">
+        <h2>Billing Settings</h2>
+
+        <!-- Update Settings -->
+        <div class="endpoint">
+            <span class="method patch">PATCH</span>
+            <span class="endpoint-url">/api/billing/settings/</span>
+            <p>Update billing settings</p>
+
+            <h6>Request Body:</h6>
+            <div class="response-example">
+                <pre>{
+    "billing_email": "finance@example.com",
+    "tax_id": "TAX123456789",
+    "billing_address": {
+        "street": "123 Rue du Commerce",
+        "city": "Bujumbura",
+        "country": "Burundi"
+    },
+    "payment_reminders": {
+        "enabled": true,
+        "days_before": [7, 3, 1]
+    },
+    "auto_recharge": {
+        "enabled": true,
+        "threshold": 1000,  // credits
+        "amount": 5000
+    }
+}</pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- Billing Analytics -->
+    <div class="api-section">
+        <h2>Billing Analytics</h2>
+
+        <!-- Get Analytics -->
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <span class="endpoint-url">/api/billing/analytics/</span>
+            <p>Get billing analytics</p>
+
+            <h6>Response:</h6>
+            <div class="response-example">
+                <pre>{
+    "overview": {
+        "mrr": 4900,  // Monthly Recurring Revenue in cents
+        "active_subscriptions": 100,
+        "total_revenue_ytd": 58800
+    },
+    "subscriptions": {
+        "by_plan": {
+            "free": 500,
+            "pro": 80,
+            "enterprise": 20
+        },
+        "churn_rate": 0.05
+    },
+    "usage_trends": [
+        {
+            "date": "2024-01",
+            "api_calls": 150000,
+            "storage": 50000000
+        }
+    ],
+    "revenue": {
+        "recurring": 4900,
+        "one_time": 1000,
+        "refunds": 500
+    }
+}</pre>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Add copy functionality for endpoint URLs
+    document.querySelectorAll('.endpoint-url').forEach(element => {
+        element.addEventListener('click', function() {
+            const text = this.textContent;
+            navigator.clipboard.writeText(text).then(() => {
+                const originalText = this.textContent;
+                this.textContent = 'Copied!';
+                setTimeout(() => {
+                    this.textContent = originalText;
+                }, 1000);
+            });
+        });
+    });
+</script>
+{% endblock %}

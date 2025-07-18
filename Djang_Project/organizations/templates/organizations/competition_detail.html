@@ -1,0 +1,278 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ competition.title }} - Community Lab{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a href="{% url 'organizations:competition_list' %}">Compétitions</a>
+                </li>
+                <li class="breadcrumb-item active">{{ competition.title }}</li>
+            </ol>
+        </nav>
+
+        <div class="card mb-4">
+            {% if competition.image %}
+                <img src="{{ competition.image.url }}" class="card-img-top" alt="{{ competition.title }}">
+            {% endif %}
+            <div class="card-body">
+                <h1 class="card-title">{{ competition.title }}</h1>
+                <div class="mb-3">
+                    <span class="badge {% if competition.status == 'UPCOMING' %}bg-info{% elif competition.status == 'ONGOING' %}bg-success{% else %}bg-secondary{% endif %}">
+                        {{ competition.get_status_display }}
+                    </span>
+                    {% if competition.prize_pool %}
+                        <span class="badge bg-primary">Prix : {{ competition.prize_pool }} BIF</span>
+                    {% endif %}
+                    <span class="badge bg-secondary">{{ competition.category.name }}</span>
+                </div>
+
+                <div class="mb-4">
+                    <h5>Informations clés</h5>
+                    <ul class="list-unstyled">
+                        <li class="mb-2">
+                            <i class="fas fa-building"></i>
+                            <strong>Organisation :</strong>
+                            <a href="{% url 'organizations:organization_detail' competition.organization.id %}">
+                                {{ competition.organization.name }}
+                            </a>
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-calendar-alt"></i>
+                            <strong>Période :</strong>
+                            Du {{ competition.start_date|date:"d/m/Y" }} au {{ competition.end_date|date:"d/m/Y" }}
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-users"></i>
+                            <strong>Participants :</strong>
+                            {{ competition.participants.count }}/{{ competition.max_participants }}
+                        </li>
+                        {% if competition.location %}
+                            <li>
+                                <i class="fas fa-map-marker-alt"></i>
+                                <strong>Lieu :</strong>
+                                {{ competition.location }}
+                            </li>
+                        {% endif %}
+                    </ul>
+                </div>
+
+                <div class="mb-4">
+                    <h5>Description</h5>
+                    {{ competition.description|linebreaks }}
+                </div>
+
+                <div class="mb-4">
+                    <h5>Règlement</h5>
+                    {{ competition.rules|linebreaks }}
+                </div>
+
+                <div class="mb-4">
+                    <h5>Prix et récompenses</h5>
+                    {{ competition.prizes|linebreaks }}
+                </div>
+
+                {% if competition.evaluation_criteria %}
+                    <div class="mb-4">
+                        <h5>Critères d'évaluation</h5>
+                        {{ competition.evaluation_criteria|linebreaks }}
+                    </div>
+                {% endif %}
+
+                {% if competition.resources.exists %}
+                    <div class="mb-4">
+                        <h5>Ressources</h5>
+                        <ul class="list-group">
+                            {% for resource in competition.resources.all %}
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <i class="fas fa-file-alt"></i>
+                                        {{ resource.title }}
+                                    </div>
+                                    {% if resource.file %}
+                                        <a href="{{ resource.file.url }}" class="btn btn-sm btn-outline-primary" 
+                                           download>
+                                            <i class="fas fa-download"></i> Télécharger
+                                        </a>
+                                    {% endif %}
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                {% endif %}
+
+                {% if competition.status == 'COMPLETED' and competition.winners.exists %}
+                    <div class="mb-4">
+                        <h5>Gagnants</h5>
+                        <div class="row">
+                            {% for winner in competition.winners.all %}
+                                <div class="col-md-4 mb-3">
+                                    <div class="card h-100">
+                                        {% if winner.participant.profile.avatar %}
+                                            <img src="{{ winner.participant.profile.avatar.url }}" 
+                                                 class="card-img-top" alt="{{ winner.participant.get_full_name }}">
+                                        {% endif %}
+                                        <div class="card-body text-center">
+                                            <h6 class="card-title">
+                                                {{ winner.participant.get_full_name }}
+                                            </h6>
+                                            <p class="card-text">
+                                                {{ winner.get_rank_display }}
+                                                {% if winner.prize %}
+                                                    <br>
+                                                    <small class="text-muted">{{ winner.prize }}</small>
+                                                {% endif %}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endif %}
+
+                {% if user.is_organization_member and user.organization == competition.organization %}
+                    <div class="mb-4">
+                        <h5>Participants inscrits</h5>
+                        {% if competition.participants.exists %}
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Participant</th>
+                                            <th>Date d'inscription</th>
+                                            <th>Statut</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for registration in competition.registrations.all %}
+                                            <tr>
+                                                <td>
+                                                    <a href="{% url 'accounts:profile_detail' registration.participant.username %}">
+                                                        {{ registration.participant.get_full_name }}
+                                                    </a>
+                                                </td>
+                                                <td>{{ registration.registered_at|date:"d/m/Y" }}</td>
+                                                <td>
+                                                    <span class="badge {% if registration.status == 'CONFIRMED' %}bg-success{% elif registration.status == 'PENDING' %}bg-warning{% else %}bg-danger{% endif %}">
+                                                        {{ registration.get_status_display }}
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    {% if registration.status == 'PENDING' %}
+                                                        <form method="post" class="d-inline" 
+                                                              action="{% url 'organizations:competition_registration_review' registration.id %}">
+                                                            {% csrf_token %}
+                                                            <button type="submit" name="action" value="confirm" 
+                                                                    class="btn btn-sm btn-success">
+                                                                Confirmer
+                                                            </button>
+                                                            <button type="submit" name="action" value="reject" 
+                                                                    class="btn btn-sm btn-danger">
+                                                                Refuser
+                                                            </button>
+                                                        </form>
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <p class="text-muted">Aucun participant inscrit pour le moment.</p>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-body">
+                {% if competition.is_registration_open %}
+                    {% if user.is_authenticated %}
+                        {% if user not in competition.participants.all %}
+                            <form method="post" action="{% url 'organizations:competition_register' competition.id %}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-primary w-100">
+                                    S'inscrire à la compétition
+                                </button>
+                            </form>
+                            <p class="small text-muted mt-2 mb-0">
+                                Date limite d'inscription : {{ competition.registration_deadline|date:"d/m/Y" }}
+                            </p>
+                        {% else %}
+                            <div class="alert alert-success mb-0">
+                                <i class="fas fa-check-circle"></i>
+                                Vous êtes inscrit à cette compétition
+                            </div>
+                        {% endif %}
+                    {% else %}
+                        <a href="{% url 'accounts:login' %}?next={{ request.path }}" 
+                           class="btn btn-primary w-100">
+                            Se connecter pour s'inscrire
+                        </a>
+                    {% endif %}
+                {% else %}
+                    <div class="alert alert-warning mb-0">
+                        <i class="fas fa-exclamation-circle"></i>
+                        Les inscriptions sont actuellement fermées
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title">À propos de l'organisation</h5>
+                <div class="d-flex align-items-center mb-3">
+                    {% if competition.organization.logo %}
+                        <img src="{{ competition.organization.logo.url }}" class="rounded-circle me-3" 
+                             width="64" height="64" alt="{{ competition.organization.name }}">
+                    {% endif %}
+                    <div>
+                        <h6 class="mb-0">{{ competition.organization.name }}</h6>
+                        <p class="text-muted mb-0">{{ competition.organization.sector }}</p>
+                    </div>
+                </div>
+                <p>{{ competition.organization.description|truncatewords:50 }}</p>
+                <a href="{% url 'organizations:organization_detail' competition.organization.id %}" 
+                   class="btn btn-outline-primary btn-sm">
+                    Voir le profil
+                </a>
+            </div>
+        </div>
+
+        {% if similar_competitions %}
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Compétitions similaires</h5>
+                    <div class="list-group list-group-flush">
+                        {% for similar in similar_competitions %}
+                            <a href="{% url 'organizations:competition_detail' similar.id %}" 
+                               class="list-group-item list-group-item-action">
+                                <h6 class="mb-1">{{ similar.title }}</h6>
+                                <p class="mb-1 text-muted small">{{ similar.description|truncatewords:10 }}</p>
+                                <small>
+                                    <i class="fas fa-calendar-alt"></i>
+                                    {{ similar.start_date|date:"d/m/Y" }}
+                                </small>
+                            </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+{% endblock %}

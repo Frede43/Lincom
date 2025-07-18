@@ -1,0 +1,20 @@
+{% extends "notifs/email/base_email.html" %}
+
+{% block content %}
+<h2>Réponse à votre demande de mentorat</h2>
+
+<p>Bonjour {{ mentor_name }},</p>
+
+<p>Nous vous informons que votre demande de mentorat pour la startup <strong>{{ startup_name }}</strong> n'a pas été retenue.</p>
+
+<p>Ne vous découragez pas ! Il existe de nombreuses autres startups qui pourraient bénéficier de votre expertise.</p>
+
+<div class="cta-button">
+    <a href="{{ site_url }}{% url 'startup_list' %}" class="button">Découvrir d'autres startups</a>
+</div>
+
+<p>Continuez à explorer notre plateforme pour trouver la startup qui correspond le mieux à votre profil et votre expertise.</p>
+
+<p>Cordialement,<br>
+L'équipe Community Lab</p>
+{% endblock %}

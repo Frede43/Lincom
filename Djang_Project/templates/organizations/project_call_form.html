@@ -1,0 +1,158 @@
+{% extends "organizations/base_organizations.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %}{% if form.instance.pk %}Modifier{% else %}Créer{% endif %} un Appel à Projets | {{ block.super }}{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'organizations:project_call_list' %}">Appels à Projets</a></li>
+{% if form.instance.pk %}
+<li class="breadcrumb-item"><a href="{% url 'organizations:project_call_detail' form.instance.pk %}">{{ form.instance.title }}</a></li>
+<li class="breadcrumb-item active">Modifier</li>
+{% else %}
+<li class="breadcrumb-item active">Créer</li>
+{% endif %}
+{% endblock %}
+
+{% block organization_content %}
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        <div class="card">
+            <div class="card-body">
+                <h2 class="card-title mb-4">
+                    {% if form.instance.pk %}
+                    Modifier l'appel à projets
+                    {% else %}
+                    Créer un nouvel appel à projets
+                    {% endif %}
+                </h2>
+
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <!-- Informations générales -->
+                    <div class="mb-4">
+                        <h5>Informations générales</h5>
+                        {{ form.title|as_crispy_field }}
+                        {{ form.description|as_crispy_field }}
+                    </div>
+
+                    <!-- Dates et budget -->
+                    <div class="mb-4">
+                        <h5>Dates et budget</h5>
+                        <div class="row">
+                            <div class="col-md-6">
+                                {{ form.start_date|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.end_date|as_crispy_field }}
+                            </div>
+                        </div>
+                        {{ form.budget|as_crispy_field }}
+                    </div>
+
+                    <!-- Exigences et statut -->
+                    <div class="mb-4">
+                        <h5>Exigences et statut</h5>
+                        {{ form.requirements|as_crispy_field }}
+                        {{ form.status|as_crispy_field }}
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <a href="{% if form.instance.pk %}{% url 'organizations:project_call_detail' form.instance.pk %}{% else %}{% url 'organizations:project_call_list' %}{% endif %}" class="btn btn-outline-secondary">
+                            Annuler
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            {% if form.instance.pk %}
+                            Enregistrer les modifications
+                            {% else %}
+                            Créer l'appel à projets
+                            {% endif %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Guide -->
+        <div class="card mt-4">
+            <div class="card-body">
+                <h5 class="card-title">Guide de création d'un appel à projets</h5>
+                
+                <div class="accordion" id="guideAccordion">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#titleGuide">
+                                Titre et description
+                            </button>
+                        </h2>
+                        <div id="titleGuide" class="accordion-collapse collapse" data-bs-parent="#guideAccordion">
+                            <div class="accordion-body">
+                                <ul>
+                                    <li>Le titre doit être clair et concis</li>
+                                    <li>La description doit inclure le contexte et les objectifs</li>
+                                    <li>Expliquez pourquoi ce projet est important</li>
+                                    <li>Mentionnez les résultats attendus</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#requirementsGuide">
+                                Exigences
+                            </button>
+                        </h2>
+                        <div id="requirementsGuide" class="accordion-collapse collapse" data-bs-parent="#guideAccordion">
+                            <div class="accordion-body">
+                                <ul>
+                                    <li>Spécifiez les critères d'éligibilité</li>
+                                    <li>Listez les compétences requises</li>
+                                    <li>Détaillez les livrables attendus</li>
+                                    <li>Précisez les contraintes techniques ou légales</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#budgetGuide">
+                                Budget
+                            </button>
+                        </h2>
+                        <div id="budgetGuide" class="accordion-collapse collapse" data-bs-parent="#guideAccordion">
+                            <div class="accordion-body">
+                                <ul>
+                                    <li>Indiquez le budget maximum disponible</li>
+                                    <li>Précisez les modalités de paiement</li>
+                                    <li>Mentionnez si des tranches sont prévues</li>
+                                    <li>Incluez les dépenses éligibles</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#datesGuide">
+                                Dates importantes
+                            </button>
+                        </h2>
+                        <div id="datesGuide" class="accordion-collapse collapse" data-bs-parent="#guideAccordion">
+                            <div class="accordion-body">
+                                <ul>
+                                    <li>La date de début doit être postérieure à aujourd'hui</li>
+                                    <li>Prévoyez suffisamment de temps pour les soumissions</li>
+                                    <li>Tenez compte du temps d'évaluation</li>
+                                    <li>Alignez les dates avec le calendrier du projet</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

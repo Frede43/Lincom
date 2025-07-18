@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+
+{% block title %}Liste des Utilisateurs - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h2>Liste des Utilisateurs</h2>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            {% for user in users %}
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100">
+                        <div class="card-body text-center">
+                            {% if user.profile_picture %}
+                                <img src="{{ user.profile_picture.url }}" alt="Photo de {{ user.username }}" class="rounded-circle img-fluid mb-3" style="max-width: 100px;">
+                            {% else %}
+                                <img src="https://via.placeholder.com/100" alt="Photo par défaut" class="rounded-circle img-fluid mb-3">
+                            {% endif %}
+                            <h5 class="card-title">{{ user.get_full_name|default:user.username }}</h5>
+                            <p class="card-text text-muted">{{ user.get_role_display }}</p>
+                            <a href="{% url 'accounts:user_detail' user.username %}" class="btn btn-primary">Voir le profil</a>
+                        </div>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="col-12">
+                    <p class="text-center">Aucun utilisateur trouvé.</p>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

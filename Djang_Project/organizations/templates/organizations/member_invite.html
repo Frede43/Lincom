@@ -1,0 +1,248 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Inviter des membres - {{ organization.name }} - Community Lab{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <nav aria-label="breadcrumb" class="mb-4">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a href="{% url 'organizations:organization_list' %}">Organisations</a>
+                </li>
+                <li class="breadcrumb-item">
+                    <a href="{% url 'organizations:organization_detail' organization.id %}">
+                        {{ organization.name }}
+                    </a>
+                </li>
+                <li class="breadcrumb-item">
+                    <a href="{% url 'organizations:member_list' organization.id %}">Membres</a>
+                </li>
+                <li class="breadcrumb-item active">Inviter des membres</li>
+            </ol>
+        </nav>
+
+        <div class="card">
+            <div class="card-body">
+                <h1 class="card-title h3 mb-4">Inviter des membres</h1>
+
+                <div class="alert alert-info mb-4">
+                    <h5 class="alert-heading">
+                        <i class="fas fa-info-circle"></i> Instructions
+                    </h5>
+                    <p class="mb-0">
+                        Vous pouvez inviter plusieurs personnes en même temps en entrant leurs adresses email.
+                        Chaque personne recevra un email d'invitation avec un lien pour rejoindre l'organisation.
+                    </p>
+                </div>
+
+                <form method="post" class="invite-form" novalidate>
+                    {% csrf_token %}
+
+                    <div class="mb-4">
+                        {{ form.emails|crispy }}
+                        <small class="text-muted">
+                            Entrez une adresse email par ligne ou séparez-les par des virgules.
+                        </small>
+                    </div>
+
+                    <div class="mb-4">
+                        {{ form.role|crispy }}
+                    </div>
+
+                    <div class="mb-4">
+                        {{ form.message|crispy }}
+                        <small class="text-muted">
+                            Ce message sera inclus dans l'email d'invitation.
+                        </small>
+                    </div>
+
+                    {% if form.instance.template %}
+                        <div class="mb-4">
+                            <h5>Aperçu de l'email</h5>
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <p><strong>Objet :</strong> Invitation à rejoindre {{ organization.name }}</p>
+                                    <hr>
+                                    <p>Bonjour,</p>
+                                    <p>
+                                        Vous avez été invité(e) à rejoindre {{ organization.name }} sur Community Lab.
+                                        {% if form.message.value %}
+                                            <br><br>
+                                            Message de l'invitant :<br>
+                                            {{ form.message.value|linebreaks }}
+                                        {% endif %}
+                                    </p>
+                                    <p>
+                                        Pour accepter cette invitation, cliquez sur le lien ci-dessous :<br>
+                                        <span class="text-primary">[Lien d'invitation]</span>
+                                    </p>
+                                    <p>
+                                        Cette invitation expirera dans 7 jours.
+                                    </p>
+                                    <p>
+                                        Cordialement,<br>
+                                        L'équipe Community Lab
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'organizations:member_list' organization.id %}" 
+                           class="btn btn-outline-secondary">
+                            Annuler
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-paper-plane"></i> Envoyer les invitations
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title">Statistiques</h5>
+                <div class="row text-center">
+                    <div class="col-6">
+                        <h3>{{ total_members }}</h3>
+                        <p class="text-muted mb-0">Membres actuels</p>
+                    </div>
+                    <div class="col-6">
+                        <h3>{{ pending_invites }}</h3>
+                        <p class="text-muted mb-0">Invitations en attente</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Conseils</h5>
+                <div class="mb-3">
+                    <h6>Pour une invitation réussie :</h6>
+                    <ul class="list-unstyled">
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success"></i>
+                            Personnalisez votre message
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success"></i>
+                            Expliquez le rôle proposé
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success"></i>
+                            Mentionnez les attentes
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success"></i>
+                            Soyez clair sur les responsabilités
+                        </li>
+                    </ul>
+                </div>
+
+                {% if recent_invites %}
+                    <h6>Invitations récentes</h6>
+                    <div class="list-group list-group-flush">
+                        {% for invite in recent_invites %}
+                            <div class="list-group-item">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-1">{{ invite.email }}</h6>
+                                        <small class="text-muted">
+                                            Envoyée le {{ invite.created_at|date:"d/m/Y" }}
+                                        </small>
+                                    </div>
+                                    <span class="badge {% if invite.status == 'PENDING' %}bg-warning{% elif invite.status == 'ACCEPTED' %}bg-success{% else %}bg-danger{% endif %}">
+                                        {{ invite.get_status_display }}
+                                    </span>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+<style>
+    .invite-form .form-group {
+        margin-bottom: 1rem;
+    }
+    .invite-form label {
+        font-weight: 500;
+    }
+    .invite-form .asteriskField {
+        color: #dc3545;
+        margin-left: 2px;
+    }
+    .invite-form .help-text {
+        font-size: 0.875rem;
+        color: #6c757d;
+    }
+    .invite-form textarea {
+        min-height: 120px;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Form validation
+    const form = document.querySelector('.invite-form');
+    form.addEventListener('submit', function(event) {
+        if (!form.checkValidity()) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+        form.classList.add('was-validated');
+    });
+
+    // Email validation
+    const emailsInput = document.querySelector('textarea[name="emails"]');
+    if (emailsInput) {
+        emailsInput.addEventListener('input', function() {
+            const emails = this.value.split(/[\n,]+/).map(e => e.trim()).filter(e => e);
+            const invalidEmails = emails.filter(e => !isValidEmail(e));
+            
+            if (invalidEmails.length > 0) {
+                this.setCustomValidity(`Adresses email invalides : ${invalidEmails.join(', ')}`);
+            } else {
+                this.setCustomValidity('');
+            }
+        });
+    }
+
+    function isValidEmail(email) {
+        const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return re.test(email);
+    }
+
+    // Character counter for message
+    const messageInput = document.querySelector('textarea[name="message"]');
+    if (messageInput) {
+        const counter = document.createElement('small');
+        counter.classList.add('text-muted', 'd-block', 'text-end');
+        messageInput.parentNode.appendChild(counter);
+
+        function updateCounter() {
+            const remaining = 500 - messageInput.value.length;
+            counter.textContent = `${remaining} caractères restants`;
+        }
+
+        messageInput.addEventListener('input', updateCounter);
+        updateCounter();
+    }
+});
+</script>
+{% endblock %}

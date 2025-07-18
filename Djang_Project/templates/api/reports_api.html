@@ -1,0 +1,342 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Reports & Exports API Documentation | {{ block.super }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .api-section {
+        margin-bottom: 2rem;
+        padding: 1.5rem;
+        border-radius: 0.5rem;
+        background: #fff;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .endpoint {
+        border-left: 4px solid #3498db;
+        padding: 1rem;
+        margin: 1rem 0;
+        background: #f8f9fa;
+    }
+    .method {
+        display: inline-block;
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.25rem;
+        font-weight: bold;
+        margin-right: 0.5rem;
+    }
+    .get { background: #28a745; color: white; }
+    .post { background: #007bff; color: white; }
+    .put { background: #ffc107; color: black; }
+    .delete { background: #dc3545; color: white; }
+    .endpoint-url {
+        font-family: monospace;
+        padding: 0.25rem;
+        background: #e9ecef;
+        border-radius: 0.25rem;
+        cursor: pointer;
+    }
+    .report-note {
+        background: #e8f4f8;
+        border: 1px solid #bee5eb;
+        padding: 1rem;
+        border-radius: 0.25rem;
+        margin-bottom: 1.5rem;
+    }
+    .response-example {
+        background: #272822;
+        color: #f8f8f2;
+        padding: 1rem;
+        border-radius: 0.25rem;
+        margin-top: 1rem;
+        font-family: monospace;
+    }
+    .format-badge {
+        display: inline-block;
+        padding: 0.2rem 0.5rem;
+        border-radius: 0.25rem;
+        font-size: 0.8rem;
+        margin-right: 0.5rem;
+        background: #e9ecef;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h1 class="mb-4">Reports & Exports API Documentation</h1>
+
+    <div class="report-note">
+        <h5><i class="fas fa-file-export"></i> Export Formats</h5>
+        <p class="mb-0">
+            Available formats:
+            <span class="format-badge">PDF</span>
+            <span class="format-badge">Excel</span>
+            <span class="format-badge">CSV</span>
+            <span class="format-badge">JSON</span>
+        </p>
+    </div>
+
+    <!-- Standard Reports -->
+    <div class="api-section">
+        <h2>Standard Reports</h2>
+
+        <!-- Generate Report -->
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <span class="endpoint-url">/api/reports/generate/</span>
+            <p>Generate a standard report</p>
+
+            <h6>Request Body:</h6>
+            <div class="response-example">
+                <pre>{
+    "report_type": "startup_performance",
+    "date_range": {
+        "start": "2024-01-01",
+        "end": "2024-12-31"
+    },
+    "filters": {
+        "sector": ["Technology", "Agriculture"],
+        "stage": ["early", "growth"]
+    },
+    "format": "pdf",
+    "include_charts": true,
+    "language": "fr"  // Default: fr
+}</pre>
+            </div>
+
+            <h6>Response:</h6>
+            <div class="response-example">
+                <pre>{
+    "report_id": "550e8400-e29b-41d4-a716-446655440000",
+    "status": "processing",
+    "estimated_completion": "2024-01-19T14:05:00Z",
+    "download_url": null
+}</pre>
+            </div>
+        </div>
+
+        <!-- Available Report Types -->
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <span class="endpoint-url">/api/reports/types/</span>
+            <p>List available report types</p>
+
+            <h6>Response:</h6>
+            <div class="response-example">
+                <pre>{
+    "report_types": [
+        {
+            "id": "startup_performance",
+            "name": "Rapport de Performance des Startups",
+            "description": "Analyse détaillée des performances des startups",
+            "available_formats": ["pdf", "excel"],
+            "parameters": [
+                {
+                    "name": "date_range",
+                    "type": "date_range",
+                    "required": true
+                },
+                {
+                    "name": "sector",
+                    "type": "multi_select",
+                    "required": false
+                }
+            ]
+        }
+    ]
+}</pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Reports -->
+    <div class="api-section">
+        <h2>Custom Reports</h2>
+
+        <!-- Create Custom Report -->
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <span class="endpoint-url">/api/reports/custom/create/</span>
+            <p>Create a custom report template</p>
+
+            <h6>Request Body:</h6>
+            <div class="response-example">
+                <pre>{
+    "name": "Rapport Personnalisé",
+    "description": "Rapport mensuel des activités",
+    "sections": [
+        {
+            "title": "Performance Générale",
+            "metrics": ["total_startups", "active_projects"],
+            "chart_type": "line",
+            "time_period": "monthly"
+        },
+        {
+            "title": "Distribution par Secteur",
+            "metrics": ["startup_count_by_sector"],
+            "chart_type": "pie"
+        }
+    ],
+    "filters": [
+        {
+            "field": "sector",
+            "type": "multi_select",
+            "default": ["Technology"]
+        },
+        {
+            "field": "date_range",
+            "type": "date_range",
+            "default": "last_month"
+        }
+    ]
+}</pre>
+            </div>
+        </div>
+
+        <!-- List Custom Reports -->
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <span class="endpoint-url">/api/reports/custom/</span>
+            <p>List all custom report templates</p>
+        </div>
+    </div>
+
+    <!-- Scheduled Reports -->
+    <div class="api-section">
+        <h2>Scheduled Reports</h2>
+
+        <!-- Create Schedule -->
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <span class="endpoint-url">/api/reports/schedule/</span>
+            <p>Schedule automated report generation</p>
+
+            <h6>Request Body:</h6>
+            <div class="response-example">
+                <pre>{
+    "report_type": "startup_performance",
+    "schedule": {
+        "frequency": "monthly",
+        "day": 1,  // 1st day of month
+        "time": "08:00"
+    },
+    "recipients": [
+        {
+            "email": "user@example.com",
+            "format": "pdf"
+        }
+    ],
+    "filters": {
+        "sector": ["Technology"],
+        "stage": ["growth"]
+    }
+}</pre>
+            </div>
+        </div>
+
+        <!-- List Schedules -->
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <span class="endpoint-url">/api/reports/schedules/</span>
+            <p>List all scheduled reports</p>
+        </div>
+    </div>
+
+    <!-- Report History -->
+    <div class="api-section">
+        <h2>Report History</h2>
+
+        <!-- List Generated Reports -->
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <span class="endpoint-url">/api/reports/history/</span>
+            <p>List previously generated reports</p>
+
+            <h6>Query Parameters:</h6>
+            <table class="table params-table">
+                <thead>
+                    <tr>
+                        <th>Parameter</th>
+                        <th>Type</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>type</td>
+                        <td>string</td>
+                        <td>Filter by report type</td>
+                    </tr>
+                    <tr>
+                        <td>status</td>
+                        <td>string</td>
+                        <td>Filter by status (completed, failed)</td>
+                    </tr>
+                    <tr>
+                        <td>date_range</td>
+                        <td>string</td>
+                        <td>Filter by generation date</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h6>Response:</h6>
+            <div class="response-example">
+                <pre>{
+    "count": 25,
+    "next": "http://api.example.org/reports/history/?page=2",
+    "previous": null,
+    "results": [
+        {
+            "id": "550e8400-e29b-41d4-a716-446655440000",
+            "report_type": "startup_performance",
+            "format": "pdf",
+            "status": "completed",
+            "generated_at": "2024-01-19T14:00:00Z",
+            "download_url": "https://storage.example.org/reports/report.pdf",
+            "size": 1048576
+        }
+    ]
+}</pre>
+            </div>
+        </div>
+
+        <!-- Report Status -->
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <span class="endpoint-url">/api/reports/{id}/status/</span>
+            <p>Check the status of a report generation</p>
+
+            <h6>Response:</h6>
+            <div class="response-example">
+                <pre>{
+    "status": "completed",
+    "progress": 100,
+    "download_url": "https://storage.example.org/reports/report.pdf",
+    "generated_at": "2024-01-19T14:00:00Z",
+    "error": null
+}</pre>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Add copy functionality for endpoint URLs
+    document.querySelectorAll('.endpoint-url').forEach(element => {
+        element.addEventListener('click', function() {
+            const text = this.textContent;
+            navigator.clipboard.writeText(text).then(() => {
+                const originalText = this.textContent;
+                this.textContent = 'Copied!';
+                setTimeout(() => {
+                    this.textContent = originalText;
+                }, 1000);
+            });
+        });
+    });
+</script>
+{% endblock %}
