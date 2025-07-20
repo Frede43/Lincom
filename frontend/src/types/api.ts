@@ -34,25 +34,25 @@ export interface Profile {
 
 // ===== EDUCATION TYPES =====
 export interface Course {
-  id: string
+  id: number
   title: string
   description: string
-  short_description: string
-  instructor: User
-  category: CourseCategory
   level: 'beginner' | 'intermediate' | 'advanced'
-  duration_hours: number
-  price: number
-  currency: string
-  thumbnail?: string
-  is_published: boolean
-  enrollment_count: number
-  rating_average: number
-  rating_count: number
+  thumbnail?: string | null
+  syllabus: string
+  prerequisites: string
+  objectives: string
+  duration_weeks: number
+  is_active: boolean
   created_at: string
   updated_at: string
-  modules: CourseModule[]
-  tags: string[]
+  instructor: number
+  // Champs optionnels pour l'UI
+  category?: string
+  isEnrolled?: boolean
+  progress?: number
+  studentsCount?: number
+  rating?: number
 }
 
 export interface CourseCategory {

@@ -44,8 +44,8 @@ const Courses: React.FC = () => {
   const filteredCourses = courses.filter(course => {
     const matchesSearch = course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          course.description.toLowerCase().includes(searchQuery.toLowerCase())
-    const matchesCategory = selectedCategory === 'all' || 
-                           course.category.toLowerCase() === selectedCategory
+    const matchesCategory = selectedCategory === 'all' ||
+                           course.level.toLowerCase() === selectedCategory
     const matchesLevel = selectedLevel === 'all' || 
                         course.level.toLowerCase() === selectedLevel
     
@@ -191,7 +191,7 @@ const Courses: React.FC = () => {
               <div className="relative">
                 <CourseImagePlaceholder
                   title={course.title}
-                  category={course.category}
+                  category={course.level}
                   className="w-full h-48 rounded-t-lg"
                 />
                 {course.isEnrolled && (
@@ -211,7 +211,7 @@ const Courses: React.FC = () => {
                   <Badge className={getLevelColor(course.level)}>
                     {course.level}
                   </Badge>
-                  <Badge variant="outline">{course.category}</Badge>
+                  <Badge variant="outline">Cours</Badge>
                 </div>
 
                 <h3 className="font-bold text-lg mb-2 group-hover:text-primary transition-colors">
@@ -224,10 +224,10 @@ const Courses: React.FC = () => {
 
                 {/* Instructeur */}
                 <div className="flex items-center gap-3 mb-4">
-                  <AvatarPlaceholder name={course.instructor.name} size={32} />
+                  <AvatarPlaceholder name={`Instructeur ${course.instructor}`} size={32} />
                   <div>
-                    <div className="font-medium text-sm">{course.instructor.name}</div>
-                    <div className="text-xs text-muted-foreground">{course.instructor.bio}</div>
+                    <div className="font-medium text-sm">Instructeur {course.instructor}</div>
+                    <div className="text-xs text-muted-foreground">Expert en innovation</div>
                   </div>
                 </div>
 
@@ -235,27 +235,27 @@ const Courses: React.FC = () => {
                 <div className="flex items-center justify-between text-sm text-muted-foreground mb-4">
                   <div className="flex items-center gap-1">
                     <Clock className="w-4 h-4" />
-                    {course.duration}
+                    {course.duration_weeks} semaines
                   </div>
                   <div className="flex items-center gap-1">
                     <Users className="w-4 h-4" />
-                    {course.studentsCount.toLocaleString()}
+                    {course.studentsCount ? course.studentsCount.toLocaleString() : '0'}
                   </div>
                   <div className="flex items-center gap-1">
                     <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                    {course.rating}
+                    {course.rating || '4.5'}
                   </div>
                 </div>
 
                 {/* Progression si inscrit */}
-                {course.isEnrolled && course.progress > 0 && (
+                {course.isEnrolled && course.progress && course.progress > 0 && (
                   <div className="mb-4">
                     <div className="flex justify-between text-sm mb-1">
                       <span>Progression</span>
                       <span>{course.progress}%</span>
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div 
+                      <div
                         className="bg-primary h-2 rounded-full transition-all duration-300"
                         style={{ width: `${course.progress}%` }}
                       />
