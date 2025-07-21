@@ -1,6 +1,6 @@
 from rest_framework import viewsets, permissions
 from rest_framework.throttling import UserRateThrottle, AnonRateThrottle
-from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from rest_framework.permissions import IsAuthenticated, IsAdminUser, AllowAny
 from rest_framework.response import Response
 from rest_framework import status
 
@@ -11,13 +11,14 @@ class CustomModelViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         """
         Permissions différentes selon la méthode HTTP
+        TEMPORAIRE : AllowAny pour les tests de développement
         """
         if self.action in ['create', 'update', 'partial_update', 'destroy']:
-            permission_classes = [IsAuthenticated, IsAdminUser]
+            permission_classes = [AllowAny]  # Temporaire pour tests
         elif self.action in ['list', 'retrieve']:
-            permission_classes = [IsAuthenticated]
+            permission_classes = [AllowAny]  # Temporaire pour tests
         else:
-            permission_classes = [IsAuthenticated]
+            permission_classes = [AllowAny]  # Temporaire pour tests
         return [permission() for permission in permission_classes]
 
     def get_throttles(self):

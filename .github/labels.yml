@@ -1,0 +1,165 @@
+# Configuration des labels GitHub pour Community Laboratory Burundi
+
+# Types de problèmes
+- name: "bug"
+  color: "d73a4a"
+  description: "Quelque chose ne fonctionne pas"
+
+- name: "enhancement"
+  color: "a2eeef"
+  description: "Nouvelle fonctionnalité ou demande"
+
+- name: "question"
+  color: "d876e3"
+  description: "Information supplémentaire demandée"
+
+- name: "documentation"
+  color: "0075ca"
+  description: "Améliorations ou ajouts à la documentation"
+
+# Priorités
+- name: "priority: low"
+  color: "0e8a16"
+  description: "Priorité basse"
+
+- name: "priority: medium"
+  color: "fbca04"
+  description: "Priorité moyenne"
+
+- name: "priority: high"
+  color: "d93f0b"
+  description: "Priorité haute"
+
+- name: "priority: critical"
+  color: "b60205"
+  description: "Priorité critique"
+
+# Statuts
+- name: "needs-triage"
+  color: "ededed"
+  description: "Nécessite un tri et une évaluation"
+
+- name: "needs-discussion"
+  color: "c5def5"
+  description: "Nécessite une discussion"
+
+- name: "needs-answer"
+  color: "fef2c0"
+  description: "Nécessite une réponse"
+
+- name: "in-progress"
+  color: "0052cc"
+  description: "Travail en cours"
+
+- name: "blocked"
+  color: "b60205"
+  description: "Bloqué par une dépendance"
+
+# Modules Django
+- name: "module: users"
+  color: "1d76db"
+  description: "Module de gestion des utilisateurs"
+
+- name: "module: education"
+  color: "0e8a16"
+  description: "Module éducation et formations"
+
+- name: "module: entrepreneurship"
+  color: "d93f0b"
+  description: "Module entrepreneuriat et startups"
+
+- name: "module: lab-equipment"
+  color: "5319e7"
+  description: "Module gestion équipements Fab Lab"
+
+- name: "module: mentorship"
+  color: "f9d0c4"
+  description: "Module mentorat"
+
+- name: "module: forum"
+  color: "c2e0c6"
+  description: "Module forum communautaire"
+
+- name: "module: dashboard"
+  color: "bfd4f2"
+  description: "Module tableau de bord"
+
+- name: "module: search"
+  color: "d4c5f9"
+  description: "Module recherche"
+
+- name: "module: organizations"
+  color: "fef2c0"
+  description: "Module organisations"
+
+# Types de contribution
+- name: "good first issue"
+  color: "7057ff"
+  description: "Bon pour les nouveaux contributeurs"
+
+- name: "help wanted"
+  color: "008672"
+  description: "Aide supplémentaire souhaitée"
+
+- name: "hacktoberfest"
+  color: "ff6b35"
+  description: "Éligible pour Hacktoberfest"
+
+# Domaines techniques
+- name: "backend"
+  color: "1d76db"
+  description: "Backend Django/Python"
+
+- name: "frontend"
+  color: "0e8a16"
+  description: "Frontend/Interface utilisateur"
+
+- name: "api"
+  color: "d93f0b"
+  description: "API REST"
+
+- name: "database"
+  color: "5319e7"
+  description: "Base de données"
+
+- name: "security"
+  color: "b60205"
+  description: "Sécurité"
+
+- name: "performance"
+  color: "fbca04"
+  description: "Performance"
+
+- name: "testing"
+  color: "c2e0c6"
+  description: "Tests"
+
+# Standards internationaux
+- name: "fab-lab-standards"
+  color: "ff6b35"
+  description: "Standards MIT Fab Lab"
+
+- name: "unesco-compliance"
+  color: "0075ca"
+  description: "Conformité UNESCO"
+
+- name: "un-sdgs"
+  color: "0e8a16"
+  description: "Objectifs de développement durable ONU"
+
+# Workflow
+- name: "duplicate"
+  color: "cfd3d7"
+  description: "Cette issue ou pull request existe déjà"
+
+- name: "invalid"
+  color: "e4e669"
+  description: "Ceci ne semble pas correct"
+
+- name: "wontfix"
+  color: "ffffff"
+  description: "Ceci ne sera pas travaillé"
+
+- name: "dependencies"
+  color: "0366d6"
+  description: "Met à jour les dépendances"
