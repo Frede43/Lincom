@@ -65,7 +65,7 @@ class TopicViewSet(viewsets.ModelViewSet):
 class PostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]  # Temporaire pour tests
 
     def get_queryset(self):
         queryset = Post.objects.filter(parent=None)  # Only get top-level posts

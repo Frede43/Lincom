@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Search, Filter, Wrench, Calendar, Clock, CheckCircle, AlertTriangle, Users, BookOpen, Loader2 } from 'lucide-react'
+import { Search, Filter, Wrench, Calendar, Clock, CheckCircle, AlertTriangle, Users, BookOpen, Loader2, MapPin } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -7,204 +7,58 @@ import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { PlaceholderImage } from '@/components/ui/placeholder-image'
 import { Link } from 'react-router-dom'
-import { useEquipment } from '@/hooks/useEquipment'
+import { useEquipment, useEquipmentCategories, labEquipmentUtils } from '@/hooks/useLabEquipment'
 
 const Equipment: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('all')
   const [selectedStatus, setSelectedStatus] = useState('all')
 
-  // Utilisation des vraies APIs Django
+  // Récupération des données réelles
   const {
     data: equipment = [],
-    isLoading,
-    error
+    isLoading: equipmentLoading,
+    error: equipmentError
   } = useEquipment({
     search: searchQuery,
     category: selectedCategory !== 'all' ? selectedCategory : undefined,
     status: selectedStatus !== 'all' ? selectedStatus : undefined,
   })
 
-  // Mock data de fallback si pas de données
-  const mockEquipment = [
-    {
-      id: '1',
-      name: 'Imprimante 3D Prusa i3 MK3S+',
-      description: 'Imprimante 3D haute précision pour prototypage rapide et fabrication de pièces.',
-      image: null,
-      category: 'Impression 3D',
-      status: 'available',
-      location: 'Atelier Principal',
-      manufacturer: 'Prusa Research',
-      model: 'i3 MK3S+',
-      serialNumber: 'PR-001-2024',
-      acquisitionDate: '2024-01-15',
-      lastMaintenance: '2024-01-10',
-      nextMaintenance: '2024-04-10',
-      specifications: {
-        'Volume d\'impression': '250 × 210 × 210 mm',
-        'Précision': '±0.1 mm',
-        'Matériaux': 'PLA, PETG, ABS, ASA, PC, CPE, PVA, HIPS, PP, Flex',
-        'Connectivité': 'USB, Ethernet, Wi-Fi'
-      },
-      certificationRequired: true,
-      maxReservationHours: 8,
-      hourlyRate: 5000, // BIF
-      currency: 'BIF',
-      currentReservations: 3,
-      totalUsageHours: 156,
-      averageRating: 4.8,
-      reviewsCount: 23
-    },
-    {
-      id: '2',
-      name: 'Découpeuse Laser CO2 40W',
-      description: 'Découpeuse laser pour matériaux fins : bois, acrylique, carton, tissu.',
-      image: null,
-      category: 'Découpe Laser',
-      status: 'maintenance',
-      location: 'Atelier Laser',
-      manufacturer: 'K40',
-      model: 'CO2-40W',
-      serialNumber: 'K40-002-2024',
-      acquisitionDate: '2023-12-01',
-      lastMaintenance: '2024-01-18',
-      nextMaintenance: '2024-02-18',
-      specifications: {
-        'Puissance': '40W CO2',
-        'Surface de travail': '300 × 200 mm',
-        'Épaisseur max': '6 mm (bois), 3 mm (acrylique)',
-        'Précision': '±0.1 mm',
-        'Logiciel': 'LaserGRBL, LightBurn'
-      },
-      certificationRequired: true,
-      maxReservationHours: 4,
-      hourlyRate: 8000, // BIF
-      currency: 'BIF',
-      currentReservations: 0,
-      totalUsageHours: 89,
-      averageRating: 4.6,
-      reviewsCount: 15
-    },
-    {
-      id: '3',
-      name: 'Arduino Starter Kit',
-      description: 'Kit complet pour débuter en électronique et programmation avec Arduino.',
-      image: null,
-      category: 'Électronique',
-      status: 'available',
-      location: 'Espace Électronique',
-      manufacturer: 'Arduino',
-      model: 'Starter Kit Rev3',
-      serialNumber: 'ARD-003-2024',
-      acquisitionDate: '2024-01-20',
-      lastMaintenance: '2024-01-20',
-      nextMaintenance: '2024-07-20',
-      specifications: {
-        'Microcontrôleur': 'Arduino Uno R3',
-        'Composants': '200+ composants électroniques',
-        'Capteurs': 'Température, lumière, mouvement',
-        'Actuateurs': 'LEDs, servomoteurs, buzzer',
-        'Documentation': 'Guide complet + projets'
-      },
-      certificationRequired: false,
-      maxReservationHours: 24,
-      hourlyRate: 1000, // BIF
-      currency: 'BIF',
-      currentReservations: 1,
-      totalUsageHours: 45,
-      averageRating: 4.9,
-      reviewsCount: 31
-    },
-    {
-      id: '4',
-      name: 'Oscilloscope Numérique',
-      description: 'Oscilloscope 2 canaux pour analyse de signaux électroniques.',
-      image: null,
-      category: 'Mesure',
-      status: 'reserved',
-      location: 'Laboratoire Électronique',
-      manufacturer: 'Rigol',
-      model: 'DS1054Z',
-      serialNumber: 'RIG-004-2024',
-      acquisitionDate: '2023-11-15',
-      lastMaintenance: '2024-01-05',
-      nextMaintenance: '2024-04-05',
-      specifications: {
-        'Canaux': '4 canaux analogiques',
-        'Bande passante': '50 MHz',
-        'Échantillonnage': '1 GSa/s',
-        'Mémoire': '24 Mpts',
-        'Écran': '7" couleur TFT'
-      },
-      certificationRequired: true,
-      maxReservationHours: 6,
-      hourlyRate: 3000, // BIF
-      currency: 'BIF',
-      currentReservations: 2,
-      totalUsageHours: 78,
-      averageRating: 4.7,
-      reviewsCount: 12
-    }
-  ]
+  const {
+    data: categories = [],
+    isLoading: categoriesLoading
+  } = useEquipmentCategories()
 
-  const categories = [
-    { value: 'all', label: 'Toutes les catégories' },
-    { value: 'impression-3d', label: 'Impression 3D' },
-    { value: 'decoupe-laser', label: 'Découpe Laser' },
-    { value: 'electronique', label: 'Électronique' },
-    { value: 'mesure', label: 'Instruments de Mesure' },
-    { value: 'usinage', label: 'Usinage CNC' },
-    { value: 'textile', label: 'Textile & Broderie' }
-  ]
+  const isLoading = equipmentLoading || categoriesLoading
 
+  // Options de statut basées sur l'API réelle
   const statuses = [
     { value: 'all', label: 'Tous les statuts' },
     { value: 'available', label: 'Disponible' },
-    { value: 'reserved', label: 'Réservé' },
-    { value: 'maintenance', label: 'Maintenance' },
-    { value: 'out-of-order', label: 'Hors service' }
+    { value: 'in_use', label: 'En cours d\'utilisation' },
+    { value: 'maintenance', label: 'En maintenance' },
+    { value: 'out_of_order', label: 'Hors service' },
+    { value: 'reserved', label: 'Réservé' }
   ]
 
-  // Utiliser les vraies données ou les données mockées en fallback
-  const displayEquipment = Array.isArray(equipment) && equipment.length > 0 ? equipment : mockEquipment
-
-  const filteredEquipment = displayEquipment.filter(item => {
+  // Filtrage des équipements avec les vraies données
+  const filteredEquipment = (equipment || []).filter(item => {
     const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         item.description.toLowerCase().includes(searchQuery.toLowerCase())
-    const matchesCategory = selectedCategory === 'all' || 
-                           item.category.toLowerCase().replace(/\s+/g, '-') === selectedCategory
+                         (item.description || '').toLowerCase().includes(searchQuery.toLowerCase())
+    const matchesCategory = selectedCategory === 'all' || item.category.toString() === selectedCategory
     const matchesStatus = selectedStatus === 'all' || item.status === selectedStatus
-    
+
     return matchesSearch && matchesCategory && matchesStatus
   })
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'available': return 'bg-green-100 text-green-800'
-      case 'reserved': return 'bg-yellow-100 text-yellow-800'
-      case 'maintenance': return 'bg-orange-100 text-orange-800'
-      case 'out-of-order': return 'bg-red-100 text-red-800'
-      default: return 'bg-gray-100 text-gray-800'
-    }
-  }
-
-  const getStatusLabel = (status: string) => {
-    switch (status) {
-      case 'available': return 'Disponible'
-      case 'reserved': return 'Réservé'
-      case 'maintenance': return 'Maintenance'
-      case 'out-of-order': return 'Hors service'
-      default: return status
-    }
-  }
 
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'available': return <CheckCircle className="w-4 h-4" />
+      case 'in_use': return <Users className="w-4 h-4" />
       case 'reserved': return <Clock className="w-4 h-4" />
       case 'maintenance': return <Wrench className="w-4 h-4" />
-      case 'out-of-order': return <AlertTriangle className="w-4 h-4" />
+      case 'out_of_order': return <AlertTriangle className="w-4 h-4" />
       default: return <CheckCircle className="w-4 h-4" />
     }
   }
@@ -251,9 +105,10 @@ const Equipment: React.FC = () => {
               <SelectValue placeholder="Catégorie" />
             </SelectTrigger>
             <SelectContent>
+              <SelectItem value="all">Toutes les catégories</SelectItem>
               {categories.map(category => (
-                <SelectItem key={category.value} value={category.value}>
-                  {category.label}
+                <SelectItem key={category.id} value={category.id.toString()}>
+                  {category.name}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -326,10 +181,10 @@ const Equipment: React.FC = () => {
                   className="w-full h-48 rounded-t-lg"
                 />
                 <div className="absolute top-2 left-2">
-                  <Badge className={getStatusColor(item.status)}>
+                  <Badge className={`bg-${labEquipmentUtils.getStatusColor(item.status)}-100 text-${labEquipmentUtils.getStatusColor(item.status)}-800`}>
                     <span className="flex items-center gap-1">
                       {getStatusIcon(item.status)}
-                      {getStatusLabel(item.status)}
+                      {labEquipmentUtils.getStatusLabel(item.status)}
                     </span>
                   </Badge>
                 </div>
@@ -370,8 +225,8 @@ const Equipment: React.FC = () => {
                     <span className="font-medium">{item.model}</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Tarif/heure:</span>
-                    <span className="font-medium">{item.hourlyRate.toLocaleString()} {item.currency}</span>
+                    <span className="text-muted-foreground">Localisation:</span>
+                    <span className="font-medium">{item.location}</span>
                   </div>
                 </div>
 

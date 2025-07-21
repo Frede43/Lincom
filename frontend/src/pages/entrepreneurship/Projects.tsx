@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Search, Rocket, MapPin, ExternalLink, Plus, Award, Loader2 } from 'lucide-react'
+import { Search, Rocket, MapPin, ExternalLink, Plus, Award, Loader2, Calendar, DollarSign, Users } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent } from '@/components/ui/card'
@@ -7,128 +7,50 @@ import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { ProjectImagePlaceholder, AvatarPlaceholder } from '@/components/ui/placeholder-image'
 import { Link } from 'react-router-dom'
-import { useProjects } from '@/hooks/useProjects'
+import { useProjects, useStartups, entrepreneurshipUtils } from '@/hooks/useEntrepreneurship'
 
 const Projects: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('all')
   const [selectedStage, setSelectedStage] = useState('all')
 
-  // Utilisation des vraies APIs Django
-  const { 
-    data: projects = [], 
-    isLoading, 
-    error 
+  // Récupération des données réelles
+  const {
+    data: projects = [],
+    isLoading: projectsLoading,
+    error
   } = useProjects({
     search: searchQuery,
-    category: selectedCategory !== 'all' ? selectedCategory : undefined,
     status: selectedStage !== 'all' ? selectedStage : undefined,
   })
 
-  // Mock data de fallback
-  const mockProjects = [
-    {
-      id: '1',
-      title: 'EcoFarm Solutions',
-      description: 'Plateforme digitale pour connecter les agriculteurs burundais aux marchés locaux et internationaux.',
-      founder: {
-        name: 'Marie UWIMANA',
-        avatar: null,
-        role: 'CEO & Fondatrice'
-      },
-      category: 'AgriTech',
-      stage: 'Croissance',
-      fundingGoal: 50000,
-      currentFunding: 32000,
-      backers: 127,
-      location: 'Bujumbura, Burundi',
-      createdAt: '2024-01-10T00:00:00Z',
-      tags: ['Agriculture', 'Marketplace', 'Mobile App', 'Sustainability'],
-      featured: true,
-      website: 'https://ecofarm-solutions.bi'
-    },
-    {
-      id: '2',
-      title: 'BurundiCraft Marketplace',
-      description: 'Marketplace en ligne pour promouvoir et vendre l\'artisanat traditionnel burundais.',
-      founder: {
-        name: 'Jean NKURUNZIZA',
-        avatar: null,
-        role: 'Fondateur'
-      },
-      category: 'E-commerce',
-      stage: 'Lancement',
-      fundingGoal: 25000,
-      currentFunding: 8500,
-      backers: 43,
-      location: 'Gitega, Burundi',
-      createdAt: '2024-01-08T00:00:00Z',
-      tags: ['Artisanat', 'E-commerce', 'Culture', 'Export'],
-      featured: false,
-      website: null
-    },
-    {
-      id: '3',
-      title: 'EduTech Burundi',
-      description: 'Plateforme d\'apprentissage en ligne adaptée au contexte éducatif burundais.',
-      founder: {
-        name: 'Grace NDAYISENGA',
-        avatar: null,
-        role: 'CTO & Co-fondatrice'
-      },
-      category: 'EdTech',
-      stage: 'Développement',
-      fundingGoal: 75000,
-      currentFunding: 15000,
-      backers: 89,
-      location: 'Ngozi, Burundi',
-      createdAt: '2024-01-05T00:00:00Z',
-      tags: ['Education', 'E-learning', 'Mobile', 'Accessibility'],
-      featured: true,
-      website: 'https://edutech-burundi.com'
-    }
-  ]
+  const {
+    data: startups = [],
+    isLoading: startupsLoading
+  } = useStartups()
 
-  // Utiliser les vraies données ou fallback
-  const displayProjects = Array.isArray(projects) && projects.length > 0 ? projects : mockProjects
+  const isLoading = projectsLoading || startupsLoading
 
-  const filteredProjects = displayProjects.filter(project => {
+  // Fonction pour obtenir la startup associée à un projet
+  const getStartupForProject = (projectStartupId: number) => {
+    return startups.find(startup => startup.id === projectStartupId)
+  }
+  // Filtrage des projets avec les vraies données
+  const filteredProjects = (projects || []).filter(project => {
     const matchesSearch = project.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          project.description.toLowerCase().includes(searchQuery.toLowerCase())
-    const matchesCategory = selectedCategory === 'all' || project.category === selectedCategory
-    const matchesStage = selectedStage === 'all' || project.stage === selectedStage
-    return matchesSearch && matchesCategory && matchesStage
+    const matchesStage = selectedStage === 'all' || project.status === selectedStage
+    return matchesSearch && matchesStage
   })
 
-  const categories = [
-    { value: 'all', label: 'Toutes les catégories' },
-    { value: 'AgriTech', label: 'AgriTech' },
-    { value: 'EdTech', label: 'EdTech' },
-    { value: 'FinTech', label: 'FinTech' },
-    { value: 'HealthTech', label: 'HealthTech' },
-    { value: 'E-commerce', label: 'E-commerce' },
-    { value: 'CleanTech', label: 'CleanTech' }
+  const statuses = [
+    { value: 'all', label: 'Tous les statuts' },
+    { value: 'not_started', label: 'Non commencé' },
+    { value: 'in_progress', label: 'En cours' },
+    { value: 'on_hold', label: 'En pause' },
+    { value: 'completed', label: 'Terminé' },
+    { value: 'cancelled', label: 'Annulé' }
   ]
-
-  const stages = [
-    { value: 'all', label: 'Tous les stades' },
-    { value: 'Idée', label: 'Idée' },
-    { value: 'Développement', label: 'Développement' },
-    { value: 'Lancement', label: 'Lancement' },
-    { value: 'Croissance', label: 'Croissance' },
-    { value: 'Expansion', label: 'Expansion' }
-  ]
-
-  const getStageColor = (stage: string) => {
-    switch (stage) {
-      case 'Idée': return 'bg-gray-100 text-gray-800'
-      case 'Développement': return 'bg-blue-100 text-blue-800'
-      case 'Lancement': return 'bg-green-100 text-green-800'
-      case 'Croissance': return 'bg-orange-100 text-orange-800'
-      case 'Expansion': return 'bg-purple-100 text-purple-800'
-      default: return 'bg-gray-100 text-gray-800'
-    }
-  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -148,32 +70,34 @@ const Projects: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
               <Card>
                 <CardContent className="p-4 text-center">
-                  <div className="text-2xl font-bold text-purple-600">{displayProjects.length}</div>
-                  <div className="text-sm text-muted-foreground">Projets actifs</div>
+                  <div className="text-2xl font-bold text-purple-600">{(projects || []).length}</div>
+                  <div className="text-sm text-muted-foreground">Projets totaux</div>
                 </CardContent>
               </Card>
               <Card>
                 <CardContent className="p-4 text-center">
                   <div className="text-2xl font-bold text-green-600">
-                    {displayProjects.filter(p => p.stage === 'Croissance').length}
+                    {(projects || []).filter(p => p.status === 'in_progress').length}
                   </div>
-                  <div className="text-sm text-muted-foreground">En croissance</div>
+                  <div className="text-sm text-muted-foreground">En cours</div>
                 </CardContent>
               </Card>
               <Card>
                 <CardContent className="p-4 text-center">
                   <div className="text-2xl font-bold text-blue-600">
-                    {displayProjects.reduce((sum, p) => sum + (p.backers || 0), 0)}
+                    {(projects || []).filter(p => p.status === 'completed').length}
                   </div>
-                  <div className="text-sm text-muted-foreground">Soutiens</div>
+                  <div className="text-sm text-muted-foreground">Terminés</div>
                 </CardContent>
               </Card>
               <Card>
                 <CardContent className="p-4 text-center">
                   <div className="text-2xl font-bold text-orange-600">
-                    ${displayProjects.reduce((sum, p) => sum + (p.currentFunding || 0), 0).toLocaleString()}
+                    {entrepreneurshipUtils.formatFunding(
+                      (projects || []).reduce((sum: number, p: any) => sum + parseFloat(p.budget || '0'), 0).toString()
+                    )}
                   </div>
-                  <div className="text-sm text-muted-foreground">Financés</div>
+                  <div className="text-sm text-muted-foreground">Budget total</div>
                 </CardContent>
               </Card>
             </div>
@@ -203,26 +127,14 @@ const Projects: React.FC = () => {
                 />
               </div>
             </div>
-            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-              <SelectTrigger className="w-full md:w-48">
-                <SelectValue placeholder="Catégorie" />
-              </SelectTrigger>
-              <SelectContent>
-                {categories.map(category => (
-                  <SelectItem key={category.value} value={category.value}>
-                    {category.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
             <Select value={selectedStage} onValueChange={setSelectedStage}>
               <SelectTrigger className="w-full md:w-48">
-                <SelectValue placeholder="Stade" />
+                <SelectValue placeholder="Statut" />
               </SelectTrigger>
               <SelectContent>
-                {stages.map(stage => (
-                  <SelectItem key={stage.value} value={stage.value}>
-                    {stage.label}
+                {statuses.map(status => (
+                  <SelectItem key={status.value} value={status.value}>
+                    {status.label}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -252,64 +164,73 @@ const Projects: React.FC = () => {
           {/* Liste des projets */}
           {!isLoading && !error && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredProjects.map(project => (
-                <Card key={project.id} className="group hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
-                  <div className="relative">
-                    <ProjectImagePlaceholder
-                      title={project.title}
-                      type={project.category}
-                      className="w-full h-48 rounded-t-lg"
-                    />
-                    {project.featured && (
-                      <Badge className="absolute top-2 right-2 bg-yellow-500">
-                        <Award className="w-3 h-3 mr-1" />
-                        Mis en avant
+              {filteredProjects.map(project => {
+                const startup = getStartupForProject(project.startup)
+                return (
+                  <Card key={project.id} className="group hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+                    <div className="relative">
+                      <ProjectImagePlaceholder
+                        title={project.title}
+                        type={startup?.industry || 'Projet'}
+                        className="w-full h-48 rounded-t-lg"
+                      />
+                      <Badge className={`absolute top-2 left-2 bg-${entrepreneurshipUtils.getStatusColor(project.status)}-500 text-white`}>
+                        {entrepreneurshipUtils.getStatusLabel(project.status)}
                       </Badge>
-                    )}
-                    <Badge className={`absolute top-2 left-2 ${getStageColor(project.stage)}`}>
-                      {project.stage}
-                    </Badge>
-                  </div>
+                      <Badge className={`absolute top-2 right-2 bg-${entrepreneurshipUtils.getStatusColor(project.priority)}-500 text-white`}>
+                        {entrepreneurshipUtils.getPriorityLabel(project.priority)}
+                      </Badge>
+                    </div>
                   
-                  <CardContent className="p-6">
-                    <div className="flex items-start justify-between mb-3">
-                      <h3 className="font-bold text-lg group-hover:text-purple-600 transition-colors">
-                        {project.title}
-                      </h3>
-                      <Badge variant="outline">{project.category}</Badge>
-                    </div>
-                    
-                    <p className="text-muted-foreground text-sm mb-4 line-clamp-2">
-                      {project.description}
-                    </p>
-
-                    {/* Fondateur */}
-                    <div className="flex items-center gap-3 mb-4">
-                      <AvatarPlaceholder name={project.founder.name} size={32} />
-                      <div>
-                        <div className="font-medium text-sm">{project.founder.name}</div>
-                        <div className="text-xs text-muted-foreground">{project.founder.role}</div>
+                    <CardContent className="p-6">
+                      <div className="flex items-start justify-between mb-3">
+                        <h3 className="font-bold text-lg group-hover:text-purple-600 transition-colors">
+                          {project.title}
+                        </h3>
+                        <Badge variant="outline">{startup?.industry || 'Projet'}</Badge>
                       </div>
-                    </div>
 
-                    {/* Actions */}
-                    <div className="flex gap-2">
-                      <Button asChild className="flex-1" size="sm">
-                        <Link to={`/projects/${project.id}`}>
-                          Voir le projet
-                        </Link>
-                      </Button>
-                      {project.website && (
-                        <Button asChild variant="outline" size="sm">
-                          <a href={project.website} target="_blank" rel="noopener noreferrer">
-                            <ExternalLink className="w-3 h-3" />
-                          </a>
+                      <p className="text-muted-foreground text-sm mb-4 line-clamp-2">
+                        {project.description}
+                      </p>
+
+                      {/* Informations du projet */}
+                      <div className="space-y-2 mb-4">
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <Calendar className="w-4 h-4" />
+                          <span>{new Date(project.start_date).toLocaleDateString('fr-FR')} - {new Date(project.end_date).toLocaleDateString('fr-FR')}</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <DollarSign className="w-4 h-4" />
+                          <span>{entrepreneurshipUtils.formatFunding(project.budget)}</span>
+                        </div>
+                        {startup && (
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <Users className="w-4 h-4" />
+                            <span>{startup.name} • {startup.team_size} personnes</span>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Actions */}
+                      <div className="flex gap-2">
+                        <Button asChild className="flex-1" size="sm">
+                          <Link to={`/projects/${project.id}`}>
+                            Voir le projet
+                          </Link>
                         </Button>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                        {startup?.website && (
+                          <Button asChild variant="outline" size="sm">
+                            <a href={startup.website} target="_blank" rel="noopener noreferrer">
+                              <ExternalLink className="w-3 h-3" />
+                            </a>
+                          </Button>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )
+              })}
             </div>
           )}
 

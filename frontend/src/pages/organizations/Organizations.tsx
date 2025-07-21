@@ -334,7 +334,7 @@ const Organizations: React.FC = () => {
           <Card>
             <CardContent className="p-4 text-center">
               <div className="text-2xl font-bold text-blue-600">
-                {organizations.reduce((sum, org) => sum + org.partnership.projects, 0)}
+                {Array.isArray(organizations) ? organizations.reduce((sum, org) => sum + (org.partnership?.projects || 0), 0) : 0}
               </div>
               <div className="text-sm text-muted-foreground">Projets collaboratifs</div>
             </CardContent>
@@ -342,7 +342,7 @@ const Organizations: React.FC = () => {
           <Card>
             <CardContent className="p-4 text-center">
               <div className="text-2xl font-bold text-purple-600">
-                {organizations.reduce((sum, org) => sum + org.partnership.students, 0)}
+                {Array.isArray(organizations) ? organizations.reduce((sum, org) => sum + (org.partnership?.students || 0), 0) : 0}
               </div>
               <div className="text-sm text-muted-foreground">Étudiants bénéficiaires</div>
             </CardContent>

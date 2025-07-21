@@ -31,18 +31,22 @@ import CourseDetail from "./pages/education/CourseDetail"
 import CourseLearning from "./pages/education/CourseLearning"
 
 // Pages entrepreneuriat
-import Projects from "./pages/entrepreneurship/Projects"
-import ProjectDetail from "./pages/entrepreneurship/ProjectDetail"
+import Projects from "./pages/entrepreneurship/Projects.tsx"
+import ProjectDetail from "./pages/entrepreneurship/ProjectDetail.tsx"
+import StartupDetail from "./pages/entrepreneurship/StartupDetail.tsx"
 
 // Pages lab
-import Equipment from "./pages/lab/Equipment"
-import EquipmentDetail from "./pages/lab/EquipmentDetail"
-import EquipmentReservation from "./pages/lab/EquipmentReservation"
+import Equipment from "./pages/lab/Equipment.tsx"
+import EquipmentDetail from "./pages/lab/EquipmentDetail.tsx"
+import EquipmentReservation from "./pages/lab/EquipmentReservation.tsx"
+import Certifications from "./pages/lab/Certifications"
+import Reservations from "./pages/lab/Reservations"
 
 // Pages forum
 import Forum from "./pages/forum/Forum"
 import ForumCategory from "./pages/forum/ForumCategory"
 import CreateTopic from "./pages/forum/CreateTopic"
+import TopicDetail from "./pages/forum/TopicDetail"
 
 // Pages notifications
 import Notifications from "./pages/notifications/Notifications"
@@ -50,6 +54,8 @@ import NotificationSettings from "./pages/notifications/NotificationSettings"
 
 // Pages organisations
 import Organizations from "./pages/organizations/Organizations"
+import OrganizationDetail from "./pages/organizations/OrganizationDetail"
+import OrganizationPartnership from "./pages/organizations/OrganizationPartnership"
 
 // Pages recherche
 import Search from "./pages/search/Search"
@@ -119,15 +125,22 @@ const App: React.FC = () => {
           {/* Routes entrepreneuriat - TEMPORAIREMENT PUBLIQUES POUR TEST */}
           <Route path="/projects" element={<Projects />} />
           <Route path="/projects/:projectId" element={<ProjectDetail />} />
+          <Route path="/startups/:startupId" element={<StartupDetail />} />
 
           {/* Routes lab - TEMPORAIREMENT PUBLIQUES POUR TEST */}
+          <Route path="/equipment" element={<Equipment />} />
+          <Route path="/equipment/:equipmentId" element={<EquipmentDetail />} />
+          <Route path="/equipment/:equipmentId/reserve" element={<EquipmentReservation />} />
           <Route path="/lab/equipment" element={<Equipment />} />
           <Route path="/lab/equipment/:equipmentId" element={<EquipmentDetail />} />
           <Route path="/lab/equipment/:equipmentId/reserve" element={<EquipmentReservation />} />
+          <Route path="/lab/certifications" element={<Certifications />} />
+          <Route path="/lab/reservations" element={<Reservations />} />
 
           {/* Routes forum - TEMPORAIREMENT PUBLIQUES POUR TEST */}
           <Route path="/forum" element={<Forum />} />
           <Route path="/forum/category/:categoryId" element={<ForumCategory />} />
+          <Route path="/forum/topic/:topicId" element={<TopicDetail />} />
           <Route path="/forum/create" element={<CreateTopic />} />
 
           {/* Routes notifications - TEMPORAIREMENT PUBLIQUES POUR TEST */}
@@ -136,6 +149,8 @@ const App: React.FC = () => {
 
           {/* Routes organisations - TEMPORAIREMENT PUBLIQUES POUR TEST */}
           <Route path="/organizations" element={<Organizations />} />
+          <Route path="/organizations/:organizationId" element={<OrganizationDetail />} />
+          <Route path="/organizations/partnership" element={<OrganizationPartnership />} />
 
           {/* Routes recherche - TEMPORAIREMENT PUBLIQUES POUR TEST */}
           <Route path="/search" element={<Search />} />

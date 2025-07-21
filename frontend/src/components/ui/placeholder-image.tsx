@@ -72,6 +72,8 @@ export const AvatarPlaceholder: React.FC<{
   size?: number
   className?: string
 }> = ({ name, size = 40, className = '' }) => {
+  // Vérification sécurisée de la taille
+  const safeSize = typeof size === 'number' && !isNaN(size) && size > 0 ? size : 40
   const initials = name
     .split(' ')
     .map(word => word.charAt(0))
@@ -93,10 +95,10 @@ export const AvatarPlaceholder: React.FC<{
     <div
       className={`inline-flex items-center justify-center rounded-full bg-gray-500 ${className}`}
       style={{
-        width: size,
-        height: size,
+        width: safeSize,
+        height: safeSize,
         backgroundColor,
-        fontSize: size * 0.4,
+        fontSize: safeSize * 0.4,
         fontWeight: 600,
         color: '#FFFFFF'
       }}

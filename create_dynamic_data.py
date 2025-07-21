@@ -16,7 +16,7 @@ django.setup()
 
 # Imports des modèles existants
 from django.contrib.auth import get_user_model
-from education.models import Course
+from education.models import Course, Module, Lesson, Quiz
 from entrepreneurship.models import Startup, Project
 from lab_equipment.models import Equipment, EquipmentCategory
 from forum.models import Category as ForumCategory, Topic, Post
@@ -151,6 +151,127 @@ def create_courses(users):
     
     return created_courses
 
+def create_modules_and_lessons(courses):
+    """Créer des modules et leçons pour les cours"""
+    print("📖 Création des modules et leçons...")
+
+    # Données des modules pour chaque cours
+    modules_data = {
+        "Python pour l'Agriculture Intelligente": [
+            {
+                'title': 'Introduction à Python',
+                'description': 'Bases du langage Python et environnement de développement',
+                'content': 'Dans ce module, vous apprendrez les fondamentaux de Python : variables, types de données, structures de contrôle et fonctions de base.',
+                'order': 1,
+                'duration_hours': 8.0,
+                'lessons': [
+                    {
+                        'title': 'Installation et configuration',
+                        'content': 'Installation de Python, IDE et premiers pas avec l\'interpréteur',
+                        'order': 1,
+                        'duration_minutes': 45
+                    },
+                    {
+                        'title': 'Variables et types de données',
+                        'content': 'Comprendre les variables, nombres, chaînes et booléens en Python',
+                        'order': 2,
+                        'duration_minutes': 60
+                    },
+                    {
+                        'title': 'Structures de contrôle',
+                        'content': 'Conditions (if/else) et boucles (for/while) en Python',
+                        'order': 3,
+                        'duration_minutes': 75
+                    }
+                ]
+            },
+            {
+                'title': 'Manipulation de données agricoles',
+                'description': 'Traitement et analyse de données avec Python',
+                'content': 'Utilisation de pandas et numpy pour analyser des données agricoles réelles du Burundi.',
+                'order': 2,
+                'duration_hours': 12.0,
+                'lessons': [
+                    {
+                        'title': 'Introduction à Pandas',
+                        'content': 'Manipulation de DataFrames pour les données agricoles',
+                        'order': 1,
+                        'duration_minutes': 90
+                    },
+                    {
+                        'title': 'Analyse statistique des récoltes',
+                        'content': 'Calculs statistiques sur les données de production agricole',
+                        'order': 2,
+                        'duration_minutes': 120
+                    }
+                ]
+            }
+        ],
+        "Entrepreneuriat Social au Burundi": [
+            {
+                'title': 'Fondements de l\'entrepreneuriat social',
+                'description': 'Comprendre les principes de l\'entrepreneuriat social',
+                'content': 'Définition, histoire et impact de l\'entrepreneuriat social au Burundi et en Afrique.',
+                'order': 1,
+                'duration_hours': 6.0,
+                'lessons': [
+                    {
+                        'title': 'Qu\'est-ce que l\'entrepreneuriat social ?',
+                        'content': 'Définition et caractéristiques de l\'entrepreneuriat social',
+                        'order': 1,
+                        'duration_minutes': 60
+                    },
+                    {
+                        'title': 'Exemples d\'entreprises sociales au Burundi',
+                        'content': 'Étude de cas d\'entreprises sociales burundaises réussies',
+                        'order': 2,
+                        'duration_minutes': 90
+                    }
+                ]
+            }
+        ]
+    }
+
+    created_modules = []
+    created_lessons = []
+
+    for course in courses:
+        if course.title in modules_data:
+            course_modules = modules_data[course.title]
+
+            for module_data in course_modules:
+                # Créer le module
+                module, created = Module.objects.get_or_create(
+                    course=course,
+                    title=module_data['title'],
+                    defaults={
+                        'description': module_data['description'],
+                        'content': module_data['content'],
+                        'order': module_data['order'],
+                        'duration_hours': module_data['duration_hours']
+                    }
+                )
+                if created:
+                    print(f"   ✅ Module créé: {module.title}")
+                    created_modules.append(module)
+
+                # Créer les leçons du module
+                for lesson_data in module_data['lessons']:
+                    lesson, created = Lesson.objects.get_or_create(
+                        module=module,
+                        title=lesson_data['title'],
+                        defaults={
+                            'content': lesson_data['content'],
+                            'order': lesson_data['order'],
+                            'duration_minutes': lesson_data['duration_minutes']
+                        }
+                    )
+                    if created:
+                        print(f"      ✅ Leçon créée: {lesson.title}")
+                        created_lessons.append(lesson)
+
+    return created_modules, created_lessons
+
 def create_startups(users):
     """Créer des startups entrepreneuriales"""
     print("🚀 Création des startups...")
@@ -197,6 +318,8 @@ def create_startups(users):
             'total_funding': Decimal('15000.00')
         }
     ]
+
+    
     
     created_startups = []
     for i, startup_data in enumerate(startups_data):
@@ -255,6 +378,7 @@ def create_projects(startups, users):
             'startup_name': 'EduTech Burundi',
             'status': 'in_progress',
             'priority': 'medium',
+            
             'start_date': date(2024, 1, 10),
             'end_date': date(2024, 12, 31),
             'budget': Decimal('35000.00')
@@ -603,6 +727,10 @@ def main():
         # Créer les cours
         courses = create_courses(users)
         print("")
+
+        # Créer les modules et leçons
+        modules, lessons = create_modules_and_lessons(courses)
+        print("")
         
         # Créer les startups
         startups = create_startups(users)
@@ -634,6 +762,8 @@ def main():
         print("📊 Résumé:")
         print(f"   👥 Utilisateurs: {len(users)}")
         print(f"   📚 Cours: {len(courses)}")
+        print(f"   📖 Modules: {Module.objects.count()}")
+        print(f"   📝 Leçons: {Lesson.objects.count()}")
         print(f"   🚀 Startups: {len(startups)}")
         print(f"   � Projets: {Project.objects.count()}")
         print(f"   �🔧 Équipements: {len(equipment)}")

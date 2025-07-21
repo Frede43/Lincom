@@ -6,7 +6,7 @@ from .views import (
 )
 
 router = DefaultRouter()
-router.register(r'companies', OrganizationViewSet, basename='company')  
+router.register(r'', OrganizationViewSet, basename='organization')
 router.register(r'calls', CallForProjectViewSet)
 router.register(r'competitions', CompetitionViewSet)
 router.register(r'submissions', SubmissionViewSet, basename='submission')
